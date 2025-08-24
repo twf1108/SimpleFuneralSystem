@@ -1,1 +1,1 @@
-Please clone the projrct repository with the Git URL
+Please clone the project repository with the Git URL

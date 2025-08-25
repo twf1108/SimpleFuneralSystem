@@ -42,11 +42,23 @@ struct Event {
     bool paid;
 };
 
+struct dateTime {
+    int date, month, year, hours, minute;
+};
+struct Activity {
+    Event event;
+};
+
 vector<Event> events;
 const string FILE_NAME = "assignment.txt";
 
-// output vector (1 for paid, 2 for unpaid , else all)
-void vectorLoop(int typeOutput, string title = "", vector<Event>* records = nullptr) {
+void createActivity();
+void editActivity();
+void viewActivity();
+void deleteActivity();
+
+// output vector (1 for paid, 2 for unpaid , else all)  // record for record the specific type record
+void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = nullptr) {
     int count = 0;
     (*records).clear();
 
@@ -86,17 +98,42 @@ void vectorLoop(int typeOutput, string title = "", vector<Event>* records = null
     }
 }
 
-// Check the input in the range ? and output directly
-void vectorLoopAndselectionInput(int typeOutput, string title = "", vector<Event>* records = nullptr) {
-    int min = 1, max = 0, selection = 0;
+void selctionCheckInput(int min , int max, int &selection) {
+    do {
+        cout << format("Please enter between {} - {}(0 for exit): ", min, max);
+        cin >> selection;
+
+        if(selection == 0) break;
+        if (selection < min || selection > max) {
+            system("cls");
+            cout << "Invalid selection" << endl;
+        }
+    } while (selection < min || selection > max);
+}
+
+// Check the input in the range ? and output directly                                                     // boolean for continue run the selecion menu?
+void vectorLoopAndselectionInput(int typeOutput = 0, string title = "", vector<Event>* records = nullptr, bool* run = nullptr) {
+    int min = 0, max = 0, selection = 0;                        
 
     do {
         vectorLoop(typeOutput, title, records);
 
         max = (*records).size();
 
-        cout << format("Please enter between {}-{}: ", min, max);
+        if (max == 0) {
+            cout << "Record not found..." << endl;
+            *run = false;
+            break;
+        }
+        
+
+        cout << format("Please enter between {} - {}(0 for exit): ", min, max);
         cin >> selection;
+
+        if (selection == 0) {
+            *run = false;
+            break;
+        }
 
         if (selection < min || selection > max) {
             system("cls");
@@ -105,62 +142,89 @@ void vectorLoopAndselectionInput(int typeOutput, string title = "", vector<Event
     } while (selection < min || selection > max);
 }
 
-// ===== File handling =====
-void loadEvents() {
+// loop a menu
+void loopMenu(const vector<string> &menu, int* selection = nullptr, string title = "", bool runInput = false) {
+    if (title != "") {
+        cout << "=====================================\n";
+        cout << "   " <<  title << "   \n";
+        cout << "=====================================\n";
+    }
+    int i = 0;
+    for (const auto& m : menu) {
+        cout << ++i << ". " << m << endl;
+    }
+    if (runInput) selctionCheckInput(0, menu.size(), *selection);
+}
+
+// ===== File handling ===== (allow to read paid, unpaid or all record)
+void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_NAME) {
     events.clear();
-    ifstream file(FILE_NAME);
+    ifstream file(filename);
     if (!file.is_open()) return;
 
     string line;
-    while (getline(file, line)) {
-        stringstream ss(line);
-        Event e;
-        string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
+    if (filename == FILE_NAME) {
+        while (getline(file, line)) {
+            stringstream ss(line);
+            Event e;
+            string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
 
-        getline(ss, e.customerName, ',');
-        getline(ss, e.deceased.deceasedName, ',');
+            getline(ss, e.customerName, ',');
+            getline(ss, e.deceased.deceasedName, ',');
 
-        string ageStr;
-        getline(ss, ageStr, ',');
-        e.deceased.age = ageStr.empty() ? 0 : stoi(ageStr);
+            string ageStr;
+            getline(ss, ageStr, ',');
+            e.deceased.age = ageStr.empty() ? 0 : stoi(ageStr);
 
-        // Deceased death date
-        string y, m, d;
-        getline(ss, y, ','); e.deceased.deadDay.year = stoi(y);
-        getline(ss, m, ','); e.deceased.deadDay.month = stoi(m);
-        getline(ss, d, ','); e.deceased.deadDay.date = stoi(d);
+            // Deceased death date
+            string y, m, d;
+            getline(ss, y, ','); e.deceased.deadDay.year = stoi(y);
+            getline(ss, m, ','); e.deceased.deadDay.month = stoi(m);
+            getline(ss, d, ','); e.deceased.deadDay.date = stoi(d);
 
-        // Event date
-        getline(ss, y, ','); e.date.year = stoi(y);
-        getline(ss, m, ','); e.date.month = stoi(m);
-        getline(ss, d, ','); e.date.date = stoi(d);
+            // Event date
+            getline(ss, y, ','); e.date.year = stoi(y);
+            getline(ss, m, ','); e.date.month = stoi(m);
+            getline(ss, d, ','); e.date.date = stoi(d);
 
-        // Package
-        getline(ss, e.package.name, ',');
-        getline(ss, priceStr, ',');
-        e.package.price = priceStr.empty() ? 0.0 : stod(priceStr);
+            // Package
+            getline(ss, e.package.name, ',');
+            getline(ss, priceStr, ',');
+            e.package.price = priceStr.empty() ? 0.0 : stod(priceStr);
 
-        // AddOn
-        getline(ss, e.addOn.name, ',');
-        getline(ss, addOnPriceStr, ',');
-        e.addOn.price = addOnPriceStr.empty() ? 0.0 : stod(addOnPriceStr);
+            // AddOn
+            getline(ss, e.addOn.name, ',');
+            getline(ss, addOnPriceStr, ',');
+            e.addOn.price = addOnPriceStr.empty() ? 0.0 : stod(addOnPriceStr);
 
-        getline(ss, totalGuest, ',');
-        e.totalGuest = totalGuest.empty() ? 0.0 : stoi(totalGuest);
+            getline(ss, totalGuest, ',');
+            e.totalGuest = totalGuest.empty() ? 0.0 : stoi(totalGuest);
 
-        getline(ss, basePrice, ',');
-        e.basePrice = basePrice.empty() ? 0.0 : stod(basePrice);
-        getline(ss, totalPrice, ',');
-        e.addOn.price = totalPrice.empty() ? 0.0 : stod(addOnPriceStr);
+            getline(ss, basePrice, ',');
+            e.basePrice = basePrice.empty() ? 0.0 : stod(basePrice);
+            getline(ss, totalPrice, ',');
+            e.addOn.price = totalPrice.empty() ? 0.0 : stod(addOnPriceStr);
 
-        // Paid flag
-        getline(ss, paidStr, ',');
-        e.paid = (paidStr == "1");
+            // Paid flag
+            getline(ss, paidStr, ',');
+            e.paid = (paidStr == "1");
 
-        e.totalPrice = e.package.price + e.addOn.price;
+            e.totalPrice = e.package.price + e.addOn.price;
 
-        events.push_back(e);
+            events.push_back(e);
     }
+    else {
+        lines->clear();
+        if (!file) {
+            cerr << "Error: cannot open file " << filename << endl;
+            return;
+        }
+
+        while (getline(file, line)) {
+            lines->push_back(line);
+        }
+    }
+
     file.close();
 }
 
@@ -333,30 +397,64 @@ void eventPayment() {
 // ===== Monitoring =====
 void eventMonitoring() {
     vector<Event> paidEvents;
+    vector<string> menu = {"Create Activity","View Activity","Edit Activity","Delete Activity"};
     int selection = 0;
+    bool run = true;
     system("cls");
+    // call function to output the paid record and let user select 
+    vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
 
-    vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents);
+    if (run) {
+        cout << endl;
+        system("cls");
+        loopMenu(menu, &selection, "Monitor a Created Event", true);
 
-    system("cls");
+        // 
+        switch (selection) {
+        case 1:
+            createActivity();
+            break;
+        case 2:
+            viewActivity();
+            break;
+        case 3:
+            editActivity();
+            break;
+        case 4:
+            deleteActivity();
+            break;
+        }
+    }
 
 }
 
+void createActivity() {
+    vector<string> lines;
+    string filename = "activity.txt";
+
+    loadEvents(&lines, filename);
+    cout << "create";
+}
+void viewActivity() {
+    cout << "view";
+}
+void editActivity() {
+    cout << "edit";
+}
+void deleteActivity() {
+    cout << "delete";
+}
 int main() {
 
     int choice = 0;
     loadEvents(); // Load from file when program starts
 
+    vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit"};
     do {
         system("cls"); // Use "clear" for Mac/Linux
 
-        cout << "=====================================\n";
-        cout << "   Funeral Event Management System   \n";
-        cout << "=====================================\n";
-        cout << "1. Register Funeral Event\n";
-        cout << "2. Payment for an Registered Event\n";
-        cout << "3. Monitor a Created Event\n";
-        cout << "4. Exit\n";
+        loopMenu(menu, nullptr ,"Funeral Event Management System");
+
         cout << "-------------------------------------\n";
         cout << "Enter your choice: ";
         cin >> choice;

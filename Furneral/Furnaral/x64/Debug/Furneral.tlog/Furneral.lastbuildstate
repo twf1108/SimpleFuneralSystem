@@ -1,6 +1,10 @@
 PlatformToolSet=v143:VCToolArchitecture=Native64Bit:VCToolsVersion=14.44.35207:TargetPlatformVersion=10.0.26100.0:
 <<<<<<< HEAD
+<<<<<<< HEAD
 Debug|x64|D:\SimpleFuneralSystem\Furneral\|
 =======
 Debug|x64|D:\LYH\Github\SimpleFuneralSystem\Furneral\|
 >>>>>>> 6b55d06 (Introduces new attributes `totalGuest` and `basePrice` to the `Event` and update load and save events function)
+=======
+Debug|x64|D:\SimpleFuneralSystem\Furneral\|
+>>>>>>> afcfbd4 (updated 7.40pm 25/8/2025)

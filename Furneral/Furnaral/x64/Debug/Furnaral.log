@@ -1,4 +1,5 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(538,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (Furnaral.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   main.cpp
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(69,30): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  Furnaral.vcxproj -> D:\LYH\Github\SimpleFuneralSystem\Furneral\x64\Debug\Furneral.exe
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(93,30): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(128,50): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  Furnaral.vcxproj -> D:\SimpleFuneralSystem\Furneral\x64\Debug\Furneral.exe

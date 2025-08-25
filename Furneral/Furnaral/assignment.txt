@@ -1,0 +1,2 @@
+Ken,Sam,Basic,1
+Sum,Kum,Premium,0

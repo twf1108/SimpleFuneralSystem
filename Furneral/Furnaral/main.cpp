@@ -222,6 +222,7 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
             e.totalPrice = e.package.price + e.addOn.price;
 
             events.push_back(e);
+        }
     }
     else {
         lines->clear();

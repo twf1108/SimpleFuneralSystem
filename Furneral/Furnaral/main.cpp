@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -7,10 +7,38 @@
 #include <format>
 using namespace std;
 
+struct Date {
+    int year;
+    int month;
+    int date;
+};
+
+struct Deceased {
+    string deceasedName;
+    int age;
+    Date deadDay;
+};
+
+struct Package {
+    string name;
+    string detail;
+    double price;
+};
+
+struct AddOn {
+    string name;
+    double price;
+};
+
 struct Event {
     string customerName;
-    string deceasedName;
-    string packageName;
+    Deceased deceased;
+    Date date;
+    Package package;
+    AddOn addOn;
+    int totalGuest;
+    double basePrice;
+    double totalPrice = 0.0;
     bool paid;
 };
 
@@ -52,9 +80,9 @@ void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = 
             // output the paid record only 
         case 1:
             if (events[i].paid) {
-                cout << ++count << ". " << events[i].deceasedName
+                cout << ++count << ". " << events[i].deceased.deceasedName
                     << " (Customer: " << events[i].customerName << ") - Package: "
-                    << events[i].packageName << " - Status: "
+                    << events[i].package.name << " - Status: "
                     << "PAID" << "\n";
                 if (records) records->push_back(events.at(i));
             }
@@ -62,18 +90,18 @@ void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = 
             // output the unpaid record only 
         case 2:
             if (!events[i].paid) {
-                cout << ++count << ". " << events[i].deceasedName
+                cout << ++count << ". " << events[i].deceased.deceasedName
                     << " (Customer: " << events[i].customerName << ") - Package: "
-                    << events[i].packageName << " - Status: "
+                    << events[i].package.name << " - Status: "
                     << "UNPAID" << "\n";
                 if (records) records->push_back(events.at(i));
             }
             break;
             // output all record
         default:
-            cout << i + 1 << ". " << events[i].deceasedName
+            cout << i + 1 << ". " << events[i].deceased.deceasedName
                 << " (Customer: " << events[i].customerName << ") - Package: "
-                << events[i].packageName << " - Status: ";
+                << events[i].package.name << " - Status: ";
             events[i].paid ? cout << " PAID" : cout << " UNPAID";
             cout << endl;
         }
@@ -145,18 +173,57 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
     if (!file.is_open()) return;
 
     string line;
-    if(filename == FILE_NAME)
+    if (filename == FILE_NAME) {
         while (getline(file, line)) {
             stringstream ss(line);
             Event e;
-            string paidStr;
+            string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
+
             getline(ss, e.customerName, ',');
-            getline(ss, e.deceasedName, ',');
-            getline(ss, e.packageName, ',');
+            getline(ss, e.deceased.deceasedName, ',');
+
+            string ageStr;
+            getline(ss, ageStr, ',');
+            e.deceased.age = ageStr.empty() ? 0 : stoi(ageStr);
+
+            // Deceased death date
+            string y, m, d;
+            getline(ss, y, ','); e.deceased.deadDay.year = stoi(y);
+            getline(ss, m, ','); e.deceased.deadDay.month = stoi(m);
+            getline(ss, d, ','); e.deceased.deadDay.date = stoi(d);
+
+            // Event date
+            getline(ss, y, ','); e.date.year = stoi(y);
+            getline(ss, m, ','); e.date.month = stoi(m);
+            getline(ss, d, ','); e.date.date = stoi(d);
+
+            // Package
+            getline(ss, e.package.name, ',');
+            getline(ss, priceStr, ',');
+            e.package.price = priceStr.empty() ? 0.0 : stod(priceStr);
+
+            // AddOn
+            getline(ss, e.addOn.name, ',');
+            getline(ss, addOnPriceStr, ',');
+            e.addOn.price = addOnPriceStr.empty() ? 0.0 : stod(addOnPriceStr);
+
+            getline(ss, totalGuest, ',');
+            e.totalGuest = totalGuest.empty() ? 0.0 : stoi(totalGuest);
+
+            getline(ss, basePrice, ',');
+            e.basePrice = basePrice.empty() ? 0.0 : stod(basePrice);
+            getline(ss, totalPrice, ',');
+            e.addOn.price = totalPrice.empty() ? 0.0 : stod(addOnPriceStr);
+
+            // Paid flag
             getline(ss, paidStr, ',');
             e.paid = (paidStr == "1");
+
+            e.totalPrice = e.package.price + e.addOn.price;
+
             events.push_back(e);
         }
+    }
     else {
         lines->clear();
         if (!file) {
@@ -177,8 +244,14 @@ void saveEvents(const string &filename = FILE_NAME, vector<string> &lines) {
     
     for (auto& e : events) {
         file << e.customerName << ","
-            << e.deceasedName << ","
-            << e.packageName << ","
+            << e.deceased.deceasedName << ","
+            << e.deceased.age << ","
+            << e.deceased.deadDay.year << "," << e.deceased.deadDay.month << "," << e.deceased.deadDay.date << ","
+            << e.date.year << "," << e.date.month << "," << e.date.date << ","
+            << e.package.name << "," << e.package.price << ","
+            << e.addOn.name << "," << e.addOn.price << ","
+            << e.totalGuest << "," << e.basePrice << ","
+            << e.totalPrice << ","
             << (e.paid ? "1" : "0") << "\n";
     }
 
@@ -194,30 +267,128 @@ void saveEvents(vector<string>& lines, const string& filename) {
 }
 
 // ===== Functions =====
+// ===== Booking =====
+void addOn(Event& e) {
+    vector<AddOn> addons = {
+        {"Flower Arrangement", 150.0},
+        {"Catering Service", 300.0},
+        {"Memorial Book", 50.0},
+        {"Music Service", 200.0},
+        {"Grave Marker", 400.0}
+    };
+
+    cout << "Funeral Add-on Selection Menu\n";
+    cout << "------------------------------\n";
+
+    for (int i = 0; i < addons.size(); i++) {
+        cout << i + 1 << ". " << addons[i].name << " - RM " << addons[i].price << endl;
+    }
+
+    int choice;
+    cout << "Enter choice (0 for none): ";
+    cin >> choice;
+
+    if (choice >= 1 && choice <= addons.size()) {
+        e.addOn = addons.at(choice - 1);
+    }
+    else {
+        e.addOn = { "No Add-on", 0.0 };
+    }
+}
+
+void selectPackage(Event& e) {
+    e.basePrice = e.totalGuest * 30;
+
+    vector<Package> packages = {
+        {"Basic Funeral Package", "Professional service fees ...", 3800.00},
+        {"Standard Funeral Package", "Includes Basic + embalming ...", 5500.00},
+        {"Premium Funeral Package", "Includes Standard + premium casket ...", 9500.00}
+    };
+
+    for (int i = 0; i < packages.size(); i++) {
+        cout << i + 1 << ". " << packages[i].name << endl
+            << "Detail: " << packages[i].detail << endl
+            << " - RM" << packages[i].price << endl;
+    }
+
+    int choice;
+    cout << "Choose package (1-" << packages.size() << "): ";
+    cin >> choice;
+    e.package = packages.at(choice - 1);   // ✅ fix
+
+    string addOnChoice;
+    cout << "Do you want to add on (Yes or No): ";
+    cin.ignore();
+    getline(cin, addOnChoice);
+
+    if (addOnChoice == "Yes") {
+        addOn(e);
+    }
+    else {
+        e.addOn = { "No Add-on", 0.0 };
+    }
+
+    e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
+}
+
 void eventRegistration() {
     Event e;
+
     cin.ignore();
     cout << "\n[Event Registration]\n";
+
+    // Customer info
     cout << "Enter Customer Name: ";
     getline(cin, e.customerName);
+
+    // Deceased info
     cout << "Enter Deceased's Name: ";
-    getline(cin, e.deceasedName);
-    cout << "Enter Package Name (Basic/Standard/Premium): ";
-    getline(cin, e.packageName);
+    getline(cin, e.deceased.deceasedName);
+
+    cout << "Enter Deceased's Age: ";
+    cin >> e.deceased.age;
+    while (cin.fail()) {
+        cin.ignore();
+        cout << "Invalid input! Please enter an integer: " << endl;
+        cin >> e.deceased.age;
+    };
+
+
+    cout << "Enter Date of Death (YYYY MM DD): ";
+    cin >> e.deceased.deadDay.year >> e.deceased.deadDay.month >> e.deceased.deadDay.date;
+
+    // Funeral Event Date
+    cout << "Enter Funeral Event Date (YYYY MM DD): ";
+    cin >> e.date.year >> e.date.month >> e.date.date;
+
+    cout << "Enter total guests: ";
+    cin >> e.totalGuest;
+    while (cin.fail()) {
+        cin.ignore();
+        cout << "Invalid input! Please enter an integer: " << endl;
+        cin >> e.deceased.age;
+    };
+
+    selectPackage(e);
+
     e.paid = false;
 
     events.push_back(e);
-    saveEvents();
-    cout << "\nEvent registered successfully for " << e.deceasedName << ".\n";
+
+    cout << "\nEvent successfully registered!\n";
+
+    return;
+
 }
 
+// ===== Payment =====
 void eventPayment() {
     cout << "\n[Event Payment]\n";
     cout << "Select an event to pay for:\n";
 
     for (size_t i = 0; i < events.size(); i++) {
         if (!events[i].paid)
-            cout << i + 1 << ". Deceased Name:  " << events[i].deceasedName
+            cout << i + 1 << ". Deceased Name:  " << events[i].deceased.deceasedName
             << " (Register Customer: " << events[i].customerName << ")";
 
         cout << "\n";
@@ -237,13 +408,14 @@ void eventPayment() {
         cout << "This event is already paid.\n";
     }
     else {
-        cout << "Processing payment for " << selected.deceasedName << "...\n";
+        cout << "Processing payment for " << selected.deceased.deceasedName << "...\n";
         selected.paid = true;
         saveEvents();
         cout << "Payment completed.\n";
     }
 }
 
+// ===== Monitoring =====
 void eventMonitoring() {
     vector<Event> paidEvents;
     vector<string> menu = { "Create Activity","View Activity","Edit Activity","Delete Activity" };
@@ -339,7 +511,7 @@ void deleteActivity() {
 
 int main() {
 
-    int choice;
+    int choice = 0;
     loadEvents(); // Load from file when program starts
 
     vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit"};

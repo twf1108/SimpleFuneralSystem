@@ -36,6 +36,8 @@ struct Event {
     Date date;
     Package package;
     AddOn addOn;
+    int totalGuest;
+    double basePrice;
     double totalPrice = 0.0;
     bool paid;
 };
@@ -113,7 +115,7 @@ void loadEvents() {
     while (getline(file, line)) {
         stringstream ss(line);
         Event e;
-        string paidStr, priceStr, addOnPriceStr, totalPrice;
+        string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
 
         getline(ss, e.customerName, ',');
         getline(ss, e.deceased.deceasedName, ',');
@@ -143,6 +145,11 @@ void loadEvents() {
         getline(ss, addOnPriceStr, ',');
         e.addOn.price = addOnPriceStr.empty() ? 0.0 : stod(addOnPriceStr);
 
+        getline(ss, totalGuest, ',');
+        e.totalGuest = totalGuest.empty() ? 0.0 : stoi(totalGuest);
+
+        getline(ss, basePrice, ',');
+        e.basePrice = basePrice.empty() ? 0.0 : stod(basePrice);
         getline(ss, totalPrice, ',');
         e.addOn.price = totalPrice.empty() ? 0.0 : stod(addOnPriceStr);
 
@@ -166,7 +173,8 @@ void saveEvents() {
             << e.deceased.deadDay.year << "," << e.deceased.deadDay.month << "," << e.deceased.deadDay.date << ","
             << e.date.year << "," << e.date.month << "," << e.date.date << ","
             << e.package.name << "," << e.package.price << ","
-            << e.addOn.name << "," << e.addOn.price << ","
+            << e.addOn.name << "," << e.addOn.price << "," 
+            << e.totalGuest << "," << e.basePrice << ","
             << e.totalPrice << ","
             << (e.paid ? "1" : "0") << "\n";
     }
@@ -204,6 +212,8 @@ void addOn(Event& e) {
 }
 
 void selectPackage(Event& e) {
+     e.basePrice = e.totalGuest * 30;
+
     vector<Package> packages = {
         {"Basic Funeral Package", "Professional service fees ...", 3800.00},
         {"Standard Funeral Package", "Includes Basic + embalming ...", 5500.00},
@@ -211,7 +221,9 @@ void selectPackage(Event& e) {
     };
 
     for (int i = 0; i < packages.size(); i++) {
-        cout << i + 1 << ". " << packages[i].name << " - RM" << packages[i].price << endl;
+        cout << i + 1 << ". " << packages[i].name << endl
+            << "Detail: " << packages[i].detail << endl 
+            << " - RM" << packages[i].price << endl;
     }
 
     int choice;
@@ -231,7 +243,7 @@ void selectPackage(Event& e) {
         e.addOn = { "No Add-on", 0.0 };
     }
 
-    e.totalPrice = e.package.price + e.addOn.price;
+    e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
 }
 
 void eventRegistration() {
@@ -250,6 +262,12 @@ void eventRegistration() {
 
     cout << "Enter Deceased's Age: ";
     cin >> e.deceased.age;
+    while (cin.fail()) {
+        cin.ignore();
+        cout << "Invalid input! Please enter an integer: " << endl;
+        cin >> e.deceased.age;
+    };
+
 
     cout << "Enter Date of Death (YYYY MM DD): ";
     cin >> e.deceased.deadDay.year >> e.deceased.deadDay.month >> e.deceased.deadDay.date;
@@ -257,6 +275,14 @@ void eventRegistration() {
     // Funeral Event Date
     cout << "Enter Funeral Event Date (YYYY MM DD): ";
     cin >> e.date.year >> e.date.month >> e.date.date;
+    
+    cout << "Enter total guests: ";
+    cin >> e.totalGuest;
+    while (cin.fail()) {
+        cin.ignore();
+        cout << "Invalid input! Please enter an integer: " << endl;
+        cin >> e.deceased.age;
+    };
 
     selectPackage(e);
 

@@ -42,11 +42,38 @@ struct Event {
     bool paid;
 };
 
+struct Date {
+    int date, month, year;
+};
+
+struct Time {
+    int hours, minute;
+};
+
+struct Activity {
+    string type, from, to;
+    double amount;
+    string description = "";
+    Date date;
+    Time time;
+};
+
 vector<Event> events;
 const string FILE_NAME = "assignment.txt";
 
+<<<<<<< HEAD
 // output vector (1 for paid, 2 for unpaid , else all)
 void vectorLoop(int typeOutput, string title = "", vector<Event>* records = nullptr) {
+=======
+void createActivity();
+void editActivity();
+void viewActivity();
+void deleteActivity();
+void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
+
+// output vector (1 for paid, 2 for unpaid , else all)  // record for record the specific type record
+void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = nullptr) {
+>>>>>>> main
     int count = 0;
     (*records).clear();
 
@@ -86,17 +113,42 @@ void vectorLoop(int typeOutput, string title = "", vector<Event>* records = null
     }
 }
 
-// Check the input in the range ? and output directly
-void vectorLoopAndselectionInput(int typeOutput, string title = "", vector<Event>* records = nullptr) {
-    int min = 1, max = 0, selection = 0;
+void selctionCheckInput(int min, int max, int& selection, const vector<string>* menu = nullptr, const string* title = nullptr) {
+    do {
+        cout << format("Please enter between {} - {} (0 for exit): ", min, max);
+        cin >> selection;
+
+        if (selection == 0) break;
+        if (selection < min || selection > max) {
+            system("cls");
+            cout << "Invalid selection\n\n";
+            loopMenu(*menu, &selection, *title, false);
+        }
+    } while (selection < min || selection > max);
+}
+
+// Check the input in the range ? and output directly                                                     // boolean for continue run the selecion menu?
+void vectorLoopAndselectionInput(int typeOutput = 0, string title = "", vector<Event>* records = nullptr, bool* run = nullptr) {
+    int min = 0, max = 0, selection = 0;                        
 
     do {
         vectorLoop(typeOutput, title, records);
 
         max = (*records).size();
 
-        cout << format("Please enter between {}-{}: ", min, max);
+        if (max == 0) {
+            cout << "Record not found..." << endl;
+            *run = false;
+            break;
+        }
+
+        cout << format("Please enter between {} - {} (0 for exit): ", min, max);
         cin >> selection;
+
+        if (selection == 0) {
+            *run = false;
+            break;
+        }
 
         if (selection < min || selection > max) {
             system("cls");
@@ -105,13 +157,28 @@ void vectorLoopAndselectionInput(int typeOutput, string title = "", vector<Event
     } while (selection < min || selection > max);
 }
 
-// ===== File handling =====
-void loadEvents() {
+// loop a menu
+void loopMenu(const vector<string> &menu, int* selection, const string title, bool runInput) {
+    if (title != "") {
+        cout << "=====================================\n";
+        cout << "   " << title << "   \n";
+        cout << "=====================================\n";
+    }
+    int i = 0;
+    for (const auto& m : menu) {
+        cout << ++i << ". " << m << endl;
+    }
+    if (runInput) selctionCheckInput(1, menu.size(), *selection, &menu, &title);
+}
+
+// ===== File handling ===== (allow to read paid, unpaid or all record)
+void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_NAME) {
     events.clear();
-    ifstream file(FILE_NAME);
+    ifstream file(filename);
     if (!file.is_open()) return;
 
     string line;
+<<<<<<< HEAD
     while (getline(file, line)) {
         stringstream ss(line);
         Event e;
@@ -160,12 +227,38 @@ void loadEvents() {
         e.totalPrice = e.package.price + e.addOn.price;
 
         events.push_back(e);
+=======
+    if(filename == FILE_NAME)
+        while (getline(file, line)) {
+            stringstream ss(line);
+            Event e;
+            string paidStr;
+            getline(ss, e.customerName, ',');
+            getline(ss, e.deceasedName, ',');
+            getline(ss, e.packageName, ',');
+            getline(ss, paidStr, ',');
+            e.paid = (paidStr == "1");
+            events.push_back(e);
+        }
+    else {
+        lines->clear();
+        if (!file) {
+            cerr << "Error: cannot open file " << filename << endl;
+            return;
+        }
+
+        while (getline(file, line)) {
+            lines->push_back(line);
+        }
+>>>>>>> main
     }
+
     file.close();
 }
 
-void saveEvents() {
-    ofstream file(FILE_NAME);
+void saveEvents(const string &filename = FILE_NAME, vector<string> &lines) {
+    ofstream file(filename);
+    
     for (auto& e : events) {
         file << e.customerName << ","
             << e.deceased.deceasedName << ","
@@ -177,6 +270,15 @@ void saveEvents() {
             << e.totalGuest << "," << e.basePrice << ","
             << e.totalPrice << ","
             << (e.paid ? "1" : "0") << "\n";
+    }
+
+    file.close();
+}
+
+void saveEvents(vector<string>& lines, const string& filename) {
+    ofstream file(filename);
+    for (auto& line : lines) {
+        file << line << "\n";
     }
     file.close();
 }
@@ -333,30 +435,108 @@ void eventPayment() {
 // ===== Monitoring =====
 void eventMonitoring() {
     vector<Event> paidEvents;
+    vector<string> menu = { "Create Activity","View Activity","Edit Activity","Delete Activity" };
     int selection = 0;
-    system("cls");
+    bool run = true;
 
-    vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents);
+    while (selection == 0) {
+        system("cls");
+        // call function to output the paid record and let user select 
+        vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
 
-    system("cls");
+        if (run) {
+            cout << endl;
+            system("cls");
+            loopMenu(menu, &selection, "Monitor a Created Event", true); // select on specific user
+
+            switch (selection) {
+            case 1:
+                createActivity();
+                break;
+            case 2:
+                viewActivity();
+                break;
+            case 3:
+                editActivity();
+                break;
+            case 4:
+                deleteActivity();
+                break;
+            }
+        }
+        else break;
+    }
+}
+
+void createActivity() {
+    vector<string> lines;
+    string filename = "activity.txt";
+    Activity activity;
+
+    cout << "Initiator: ";
+    getline(cin, activity.from);
+
+    cout << "Invitees: ";
+    getline(cin, activity.to);
+
+    cout << "Type of Activity: ";
+    getline(cin, activity.type);
+
+    cout << "Amount of Activity: ";
+    cin >> activity.amount;
+    cin.ignore();
+
+    cout << "Description: ";
+    getline(cin, activity.description);
+    cin.ignore();
+
+    cout << "Date (dd mm yy): ";
+    cin >> activity.date.date >> activity.date.month >> activity.date.year;
+
+    cout << "Date (hh mm): ";
+    cin >> activity.time.hours >> activity.time.minute;
+
+    stringstream ss;
+    ss << activity.from << ","
+        << activity.to << ","
+        << activity.type << ","
+        << activity.amount << ","
+        << activity.description << ","
+        << activity.date.date << " " << activity.date.month << " " << activity.date.year << ","
+        << activity.time.hours << " " << activity.time.minute;
+
+
+    lines.push_back(ss.str());
+    //loadEvents(&lines, filename);
 
 }
+//string type, from, to;
+//double amount;
+//string description = "";
+//DateTime dateTime;
+
+void viewActivity() {
+    cout << "view";
+}
+void editActivity() {
+    cout << "edit";
+}
+void deleteActivity() {
+    cout << "delete";
+}
+
 
 int main() {
 
     int choice = 0;
     loadEvents(); // Load from file when program starts
 
+    vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit"};
     do {
         system("cls"); // Use "clear" for Mac/Linux
 
-        cout << "=====================================\n";
-        cout << "   Funeral Event Management System   \n";
-        cout << "=====================================\n";
-        cout << "1. Register Funeral Event\n";
-        cout << "2. Payment for an Registered Event\n";
-        cout << "3. Monitor a Created Event\n";
-        cout << "4. Exit\n";
+        loopMenu(menu, nullptr ,"Funeral Event Management System");
+
         cout << "-------------------------------------\n";
         cout << "Enter your choice: ";
         cin >> choice;

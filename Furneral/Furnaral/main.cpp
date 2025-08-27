@@ -256,9 +256,8 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
     file.close();
 }
 
-void saveEvents(const string &filename = FILE_NAME, vector<string> &lines) {
-    ofstream file(filename);
-    
+void saveEvents() {
+    ofstream file(FILE_NAME);
     for (auto& e : events) {
         file << e.customerName << ","
             << e.deceased.deceasedName << ","
@@ -270,15 +269,6 @@ void saveEvents(const string &filename = FILE_NAME, vector<string> &lines) {
             << e.totalGuest << "," << e.basePrice << ","
             << e.totalPrice << ","
             << (e.paid ? "1" : "0") << "\n";
-    }
-
-    file.close();
-}
-
-void saveEvents(vector<string>& lines, const string& filename) {
-    ofstream file(filename);
-    for (auto& line : lines) {
-        file << line << "\n";
     }
     file.close();
 }
@@ -495,20 +485,8 @@ void createActivity() {
 
     cout << "Date (hh mm): ";
     cin >> activity.time.hours >> activity.time.minute;
-
-    stringstream ss;
-    ss << activity.from << ","
-        << activity.to << ","
-        << activity.type << ","
-        << activity.amount << ","
-        << activity.description << ","
-        << activity.date.date << " " << activity.date.month << " " << activity.date.year << ","
-        << activity.time.hours << " " << activity.time.minute;
-
-
-    lines.push_back(ss.str());
     //loadEvents(&lines, filename);
-
+    cout << "create";
 }
 //string type, from, to;
 //double amount;

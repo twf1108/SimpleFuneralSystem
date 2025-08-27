@@ -331,7 +331,7 @@ void selectPackage(Event& e) {
     e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
 }
 
-void eventRegistration() {
+void eventInput() {
     Event e;
 
     cin.ignore();
@@ -379,6 +379,69 @@ void eventRegistration() {
 
     return;
 
+}
+
+void readEvent() {
+    string name = "";
+    vector<string> dummy;
+
+    loadEvents(&dummy, FILE_NAME);
+
+    cout << "Please enter your name: ";
+    cin >> name;
+
+    for (int i = 0; i < events.size(); i++) {
+        if (events[i].customerName == name) {
+            cout << "Customer Name: " << events[i].customerName << endl;
+            cout << "Deceased Name: " << events[i].deceased.deceasedName << endl;
+            cout << "Deceased Age: " << events[i].deceased.age << endl;
+            cout << "Date: " << events[i].date.year << "-"
+                << events[i].date.month << "-"
+                << events[i].date.date << endl;
+            cout << "Package: " << events[i].package.name
+                << " (" << events[i].package.detail << ")" << endl;
+            cout << "Add-On: " << events[i].addOn.name
+                << " ($" << events[i].addOn.price << ")" << endl;
+            cout << "Total Guests: " << events[i].totalGuest << endl;
+            cout << "Base Price: $" << events[i].basePrice << endl;
+            cout << "Total Price: $" << events[i].totalPrice << endl;
+            cout << "Paid: " << (events[i].paid ? "Yes" : "No") << endl;
+            cout << "-----------------------------" << endl;
+        }
+    }
+}
+
+void eventRegistration() {
+    vector<Event> paidEvents;
+    vector<string> menu = { "Create Event", "Read Event"};
+    int selection = 0;
+    bool run = true;
+
+    while (selection == 0) {
+        system("cls");
+        // call function to output the paid record and let user select 
+        vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
+
+        if (run) {
+            cout << endl;
+            system("cls");
+            loopMenu(menu, &selection, "Monitor a Created Event", true); // select on specific user
+
+            switch (selection) {
+            case 1:
+                eventInput();
+                break;
+            case 2:
+                readEvent;
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            }
+        }
+        else break;
+    }
 }
 
 // ===== Payment =====

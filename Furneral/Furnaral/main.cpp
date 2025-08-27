@@ -8,9 +8,19 @@
 using namespace std;
 
 struct Date {
-    int year;
-    int month;
-    int date;
+    int date, month, year;
+};
+
+struct Time {
+    int hours, minute;
+};
+
+struct Activity {
+    string type, from, to;
+    double amount;
+    string description = "";
+    Date date;
+    Time time;
 };
 
 struct Deceased {
@@ -40,22 +50,6 @@ struct Event {
     double basePrice;
     double totalPrice = 0.0;
     bool paid;
-};
-
-struct Date {
-    int date, month, year;
-};
-
-struct Time {
-    int hours, minute;
-};
-
-struct Activity {
-    string type, from, to;
-    double amount;
-    string description = "";
-    Date date;
-    Time time;
 };
 
 vector<Event> events;

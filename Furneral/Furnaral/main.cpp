@@ -173,7 +173,7 @@ void saveEvents() {
             << e.deceased.deadDay.year << "," << e.deceased.deadDay.month << "," << e.deceased.deadDay.date << ","
             << e.date.year << "," << e.date.month << "," << e.date.date << ","
             << e.package.name << "," << e.package.price << ","
-            << e.addOn.name << "," << e.addOn.price << "," 
+            << e.addOn.name << "," << e.addOn.price << ","
             << e.totalGuest << "," << e.basePrice << ","
             << e.totalPrice << ","
             << (e.paid ? "1" : "0") << "\n";
@@ -212,7 +212,7 @@ void addOn(Event& e) {
 }
 
 void selectPackage(Event& e) {
-     e.basePrice = e.totalGuest * 30;
+    e.basePrice = e.totalGuest * 30;
 
     vector<Package> packages = {
         {"Basic Funeral Package", "Professional service fees ...", 3800.00},
@@ -222,7 +222,7 @@ void selectPackage(Event& e) {
 
     for (int i = 0; i < packages.size(); i++) {
         cout << i + 1 << ". " << packages[i].name << endl
-            << "Detail: " << packages[i].detail << endl 
+            << "Detail: " << packages[i].detail << endl
             << " - RM" << packages[i].price << endl;
     }
 
@@ -249,7 +249,7 @@ void selectPackage(Event& e) {
 void eventRegistration() {
     Event e;
 
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.ignore();
     cout << "\n[Event Registration]\n";
 
     // Customer info
@@ -275,7 +275,7 @@ void eventRegistration() {
     // Funeral Event Date
     cout << "Enter Funeral Event Date (YYYY MM DD): ";
     cin >> e.date.year >> e.date.month >> e.date.date;
-    
+
     cout << "Enter total guests: ";
     cin >> e.totalGuest;
     while (cin.fail()) {

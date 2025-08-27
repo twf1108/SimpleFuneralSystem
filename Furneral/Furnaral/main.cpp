@@ -42,20 +42,11 @@ struct Event {
     bool paid;
 };
 
-struct Date {
-    int date, month, year;
+struct dateTime {
+    int date, month, year, hours, minute;
 };
-
-struct Time {
-    int hours, minute;
-};
-
 struct Activity {
-    string type, from, to;
-    double amount;
-    string description = "";
-    Date date;
-    Time time;
+    Event event;
 };
 
 vector<Event> events;
@@ -69,7 +60,6 @@ void createActivity();
 void editActivity();
 void viewActivity();
 void deleteActivity();
-void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
 
 // output vector (1 for paid, 2 for unpaid , else all)  // record for record the specific type record
 void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = nullptr) {
@@ -113,16 +103,15 @@ void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = 
     }
 }
 
-void selctionCheckInput(int min, int max, int& selection, const vector<string>* menu = nullptr, const string* title = nullptr) {
+void selctionCheckInput(int min , int max, int &selection) {
     do {
-        cout << format("Please enter between {} - {} (0 for exit): ", min, max);
+        cout << format("Please enter between {} - {}(0 for exit): ", min, max);
         cin >> selection;
 
-        if (selection == 0) break;
+        if(selection == 0) break;
         if (selection < min || selection > max) {
             system("cls");
-            cout << "Invalid selection\n\n";
-            loopMenu(*menu, &selection, *title, false);
+            cout << "Invalid selection" << endl;
         }
     } while (selection < min || selection > max);
 }
@@ -141,8 +130,9 @@ void vectorLoopAndselectionInput(int typeOutput = 0, string title = "", vector<E
             *run = false;
             break;
         }
+        
 
-        cout << format("Please enter between {} - {} (0 for exit): ", min, max);
+        cout << format("Please enter between {} - {}(0 for exit): ", min, max);
         cin >> selection;
 
         if (selection == 0) {
@@ -158,17 +148,17 @@ void vectorLoopAndselectionInput(int typeOutput = 0, string title = "", vector<E
 }
 
 // loop a menu
-void loopMenu(const vector<string> &menu, int* selection, const string title, bool runInput) {
+void loopMenu(const vector<string> &menu, int* selection = nullptr, string title = "", bool runInput = false) {
     if (title != "") {
         cout << "=====================================\n";
-        cout << "   " << title << "   \n";
+        cout << "   " <<  title << "   \n";
         cout << "=====================================\n";
     }
     int i = 0;
     for (const auto& m : menu) {
         cout << ++i << ". " << m << endl;
     }
-    if (runInput) selctionCheckInput(1, menu.size(), *selection, &menu, &title);
+    if (runInput) selctionCheckInput(0, menu.size(), *selection);
 }
 
 // ===== File handling ===== (allow to read paid, unpaid or all record)
@@ -425,74 +415,44 @@ void eventPayment() {
 // ===== Monitoring =====
 void eventMonitoring() {
     vector<Event> paidEvents;
-    vector<string> menu = { "Create Activity","View Activity","Edit Activity","Delete Activity" };
+    vector<string> menu = {"Create Activity","View Activity","Edit Activity","Delete Activity"};
     int selection = 0;
     bool run = true;
+    system("cls");
+    // call function to output the paid record and let user select 
+    vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
 
-    while (selection == 0) {
+    if (run) {
+        cout << endl;
         system("cls");
-        // call function to output the paid record and let user select 
-        vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
+        loopMenu(menu, &selection, "Monitor a Created Event", true);
 
-        if (run) {
-            cout << endl;
-            system("cls");
-            loopMenu(menu, &selection, "Monitor a Created Event", true); // select on specific user
-
-            switch (selection) {
-            case 1:
-                createActivity();
-                break;
-            case 2:
-                viewActivity();
-                break;
-            case 3:
-                editActivity();
-                break;
-            case 4:
-                deleteActivity();
-                break;
-            }
+        // 
+        switch (selection) {
+        case 1:
+            createActivity();
+            break;
+        case 2:
+            viewActivity();
+            break;
+        case 3:
+            editActivity();
+            break;
+        case 4:
+            deleteActivity();
+            break;
         }
-        else break;
     }
+
 }
 
 void createActivity() {
     vector<string> lines;
     string filename = "activity.txt";
-    Activity activity;
 
-    cout << "Initiator: ";
-    getline(cin, activity.from);
-
-    cout << "Invitees: ";
-    getline(cin, activity.to);
-
-    cout << "Type of Activity: ";
-    getline(cin, activity.type);
-
-    cout << "Amount of Activity: ";
-    cin >> activity.amount;
-    cin.ignore();
-
-    cout << "Description: ";
-    getline(cin, activity.description);
-    cin.ignore();
-
-    cout << "Date (dd mm yy): ";
-    cin >> activity.date.date >> activity.date.month >> activity.date.year;
-
-    cout << "Date (hh mm): ";
-    cin >> activity.time.hours >> activity.time.minute;
-    //loadEvents(&lines, filename);
+    loadEvents(&lines, filename);
     cout << "create";
 }
-//string type, from, to;
-//double amount;
-//string description = "";
-//DateTime dateTime;
-
 void viewActivity() {
     cout << "view";
 }
@@ -502,8 +462,6 @@ void editActivity() {
 void deleteActivity() {
     cout << "delete";
 }
-
-
 int main() {
 
     int choice = 0;

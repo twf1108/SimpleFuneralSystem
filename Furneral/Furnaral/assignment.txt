@@ -1,3 +1,2 @@
 Ken,Sam,Basic,1
-Ali,Ala,Basic,0
-Lim,Chong,Premium,1
+Sum,Kum,Premium,0

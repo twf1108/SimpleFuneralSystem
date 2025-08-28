@@ -1,12 +1,2 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-^D:\SIMPLEFUNERALSYSTEM\FURNERAL\FURNARAL\X64\DEBUG\MAIN.OBJ
-D:\SimpleFuneralSystem\Furneral\Furnaral\x64\Debug\Furneral.ilk
-=======
 ^D:\LYH\GITHUB\SIMPLEFUNERALSYSTEM\FURNERAL\FURNARAL\X64\DEBUG\MAIN.OBJ
 D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\x64\Debug\Furneral.ilk
->>>>>>> 6b55d06 (Introduces new attributes `totalGuest` and `basePrice` to the `Event` and update load and save events function)
-=======
-^D:\SIMPLEFUNERALSYSTEM\FURNERAL\FURNARAL\X64\DEBUG\MAIN.OBJ
-D:\SimpleFuneralSystem\Furneral\Furnaral\x64\Debug\Furneral.ilk
->>>>>>> afcfbd4 (updated 7.40pm 25/8/2025)

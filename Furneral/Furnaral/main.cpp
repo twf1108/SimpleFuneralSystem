@@ -118,7 +118,7 @@ void selctionCheckInput(int min, int max, int& selection, const vector<string>* 
 
 // Check the input in the range ? and output directly                                                     // boolean for continue run the selecion menu?
 void vectorLoopAndselectionInput(int typeOutput = 0, string title = "", vector<Event>* records = nullptr, bool* run = nullptr) {
-    int min = 0, max = 0, selection = 0;                        
+    int min = 0, max = 0, selection = 0;
 
     do {
         vectorLoop(typeOutput, title, records);
@@ -147,7 +147,7 @@ void vectorLoopAndselectionInput(int typeOutput = 0, string title = "", vector<E
 }
 
 // loop a menu
-void loopMenu(const vector<string> &menu, int* selection, const string title, bool runInput) {
+void loopMenu(const vector<string>& menu, int* selection, const string title, bool runInput) {
     if (title != "") {
         cout << "=====================================\n";
         cout << "   " << title << "   \n";
@@ -233,9 +233,9 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
     file.close();
 }
 
-void saveEvents(const string &filename = FILE_NAME, vector<string> &lines) {
-    ofstream file(filename);
-    
+void saveEvents() {
+    ofstream file(FILE_NAME);
+
     for (auto& e : events) {
         file << e.customerName << ","
             << e.deceased.deceasedName << ","
@@ -406,37 +406,29 @@ void readEvent() {
 }
 
 void eventRegistration() {
-    vector<Event> paidEvents;
-    vector<string> menu = { "Create Event", "Read Event"};
+    vector<string> menu = { "Create Event", "Read Event" };
     int selection = 0;
     bool run = true;
 
     while (selection == 0) {
         system("cls");
-        // call function to output the paid record and let user select 
-        vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
 
-        if (run) {
-            cout << endl;
-            system("cls");
-            loopMenu(menu, &selection, "Monitor a Created Event", true); // select on specific user
+        // Remove this call; no need to show paid events first
+        // vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
 
-            switch (selection) {
-            case 1:
-                eventInput();
-                break;
-            case 2:
-                readEvent;
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-            }
+        loopMenu(menu, &selection, "Monitor a Created Event", true);
+
+        switch (selection) {
+        case 1:
+            eventInput(); // Register new event
+            break;
+        case 2:
+            readEvent(); // Read existing events
+            break;
         }
-        else break;
     }
 }
+
 
 // ===== Payment =====
 void eventPayment() {
@@ -571,11 +563,11 @@ int main() {
     int choice = 0;
     loadEvents(); // Load from file when program starts
 
-    vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit"};
+    vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit" };
     do {
         system("cls"); // Use "clear" for Mac/Linux
 
-        loopMenu(menu, nullptr ,"Funeral Event Management System");
+        loopMenu(menu, nullptr, "Funeral Event Management System");
 
         cout << "-------------------------------------\n";
         cout << "Enter your choice: ";

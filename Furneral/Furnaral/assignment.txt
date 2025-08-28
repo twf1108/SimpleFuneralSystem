@@ -1,6 +1,2 @@
-Ken,Sam,Basic,1
-Ali,Ala,Basic,0
-Lim,Chong,Premium,1
-=======
-lo,lo,33,2222,22,22,2222,22,22,Basic Funeral Package,3800,No Add-on,0,3800,0
-Sum,Kum,Premium,0
+lo,lo,33,2222,22,22,2222,22,22,Basic Funeral Package,3800,No Add-on,0,3800,0,3800,0
+L,L,3,4,4,4,4,4,4,Basic Funeral Package,3800,No Add-on,0,4,120,3800,0

@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <iomanip>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -25,6 +26,12 @@ struct Activity {
 	Time time;
 };
 
+struct Customer {
+	string customerIC = "";
+	string customerName = "";
+	string customerHpNo = "";
+};
+
 struct Deceased {
 	string deceasedName = "";
 	int age = 0;
@@ -43,8 +50,7 @@ struct AddOn {
 };
 
 struct Event {
-	string customerIC = "";
-	string customerName = "";
+	Customer customer;
 	Deceased deceased;
 	Date date;
 	Package package;
@@ -56,13 +62,29 @@ struct Event {
 };
 
 vector<Event> events;
-const string FILE_NAME = "assignment.txt";
 
 void createActivity(const Event& event);
 void editActivity(const string& filename, const Event& event);
 void viewActivity(const string& filename, const Event& event);
 void deleteActivity(const string& filename, const Event& event);
 void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
+
+
+// ==== Validation =====
+//check int
+void checkInt(int &i) {
+	while (true) {
+		if (cin.fail()) {
+			cin.clear();
+			cin.ignore();
+			cout << "Invalid input! Please enter an integer: ";
+			cin >> i;
+		}
+		else {
+			break;
+		}
+	};
+}
 
 //check ic input
 string inputIC() {
@@ -77,7 +99,7 @@ string inputIC() {
 		for (size_t i = 0; i < ic.length(); i++) {
 			if (ic[i] == '-') {
 				ic.erase(i, 1);
-				i--; 
+				i--;
 			}
 		}
 
@@ -100,6 +122,45 @@ string inputIC() {
 			return ic;
 		}
 	}
+}
+
+//check hpno
+string inputHp() {
+	bool valid;
+	string hpNo;
+
+	while (true) {
+		cout << "Enter Customer Phone Number (e.g., 011-2727 5569): ";
+		getline(cin, hpNo);
+
+		// Remove any '-' characters
+		for (size_t i = 0; i < hpNo.length(); i++) {
+			if (hpNo[i] == '-' || hpNo[i] == ' ') {
+				hpNo.erase(i, 1);
+				i--;
+			}
+		}
+
+		// Check if all characters are digits
+		valid = true;
+		if (hpNo.length() < 10 || hpNo.length() > 11) valid = false;
+		else {
+			for (size_t i = 0; i < hpNo.length(); i++) {
+				if (!isdigit(hpNo[i])) {
+					valid = false;
+					break;
+				}
+			}
+		}
+
+		if (!valid) {
+			cout << "Invalid phone number. Please enter in total 9 - 10 digits.\n";
+		}
+		else {
+			return hpNo;
+		}
+	}
+
 }
 
 //check date input
@@ -175,7 +236,7 @@ void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = 
 		case 1:
 			if (events[i].paid) {
 				cout << ++count << ". " << events[i].deceased.deceasedName
-					<< " (Customer: " << events[i].customerName << ") - Package: "
+					<< " (Customer: " << events[i].customer.customerName << ") - Package: "
 					<< events[i].package.name << " - Status: "
 					<< "PAID" << "\n";
 				if (records) records->push_back(events.at(i));
@@ -185,7 +246,7 @@ void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = 
 		case 2:
 			if (!events[i].paid) {
 				cout << ++count << ". " << events[i].deceased.deceasedName
-					<< " (Customer: " << events[i].customerName << ") - Package: "
+					<< " (Customer: " << events[i].customer.customerName << ") - Package: "
 					<< events[i].package.name << " - Status: "
 					<< "UNPAID" << "\n";
 				if (records) records->push_back(events.at(i));
@@ -194,7 +255,7 @@ void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = 
 			// output all record
 		default:
 			cout << i + 1 << ". " << events[i].deceased.deceasedName
-				<< " (Customer: " << events[i].customerName << ") - Package: "
+				<< " (Customer: " << events[i].customer.customerName << ") - Package: "
 				<< events[i].package.name << " - Status: ";
 			events[i].paid ? cout << " PAID" : cout << " UNPAID";
 			cout << endl;
@@ -263,12 +324,12 @@ void loopMenu(const vector<string>& menu, int* selection, const string title, bo
 
 
 // ===== File handling ===== (allow to read paid, unpaid or all record)
-void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_NAME) {
+void loadEvents(vector<string>* lines = nullptr, const string& filename = "assignment.txt") {
 	ifstream file(filename);
 	if (!file.is_open()) return;
 
 	string line;
-	if (filename == FILE_NAME) {
+	if (filename == "assignment.txt") {
 		events.clear();
 
 		while (getline(file, line)) {
@@ -276,8 +337,9 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
 			Event e;
 			string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
 
-			getline(ss, e.customerIC, ',');
-			getline(ss, e.customerName, ',');
+			getline(ss, e.customer.customerIC, ',');
+			getline(ss, e.customer.customerHpNo, ',');
+			getline(ss, e.customer.customerName, ',');
 			getline(ss, e.deceased.deceasedName, ',');
 
 			string ageStr;
@@ -333,10 +395,11 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
 }
 
 void saveEvents() {
-	ofstream file(FILE_NAME);
+	ofstream file("assignment.txt");
 	for (auto& e : events) {
-		file << e.customerIC << ","
-			<< e.customerName << ","
+		file << e.customer.customerIC << ","
+			<< e.customer.customerName << ","
+			<< e.customer.customerHpNo << ","
 			<< e.deceased.deceasedName << ","
 			<< e.deceased.age << ","
 			<< e.deceased.deadDay.year << "," << e.deceased.deadDay.month << "," << e.deceased.deadDay.date << ","
@@ -429,8 +492,8 @@ void selectPackage(Event& e) {
 
 	for (int i = 0; i < packages.size(); i++) {
 		cout << i + 1 << ". " << packages[i].name << endl
-			<< "Detail: " << packages[i].detail << endl
-			<< " - RM" << packages[i].price << endl;
+			<< setw(2) << "Detail: " << packages[i].detail << endl
+			<< setw(2) << "RM" << packages[i].price << endl;
 	}
 
 	int choice;
@@ -461,10 +524,11 @@ void eventInput() {
 
 	// Customer info
 	cout << "Enter Customer IC:";
-	e.customerIC = inputIC();
+	e.customer.customerIC = inputIC();
 	cin.ignore();
 	cout << "Enter Customer Name: ";
-	getline(cin, e.customerName);
+	getline(cin, e.customer.customerName);
+	e.customer.customerHpNo = inputHp();
 
 	// Deceased info
 	cout << "Enter Deceased's Name: ";
@@ -472,24 +536,18 @@ void eventInput() {
 
 	cout << "Enter Deceased's Age: ";
 	cin >> e.deceased.age;
-	while (cin.fail()) {
-		cin.ignore();
-		cout << "Invalid input! Please enter an integer: " << endl;
-		cin >> e.deceased.age;
-	};
+	checkInt(e.deceased.age);
 	cin.ignore();
 
 	inputDeathDate(e);
 
 	inputFuneralDate(e);
 
+	cin.ignore();
+
 	cout << "Enter total guests: ";
 	cin >> e.totalGuest;
-	while (cin.fail()) {
-		cin.ignore();
-		cout << "Invalid input! Please enter an integer: " << endl;
-		cin >> e.deceased.age;
-	};
+	checkInt(e.totalGuest);
 
 	selectPackage(e);
 
@@ -508,14 +566,15 @@ void readEvent() {
 	bool found = false;
 	vector<string> dummy;
 
-	loadEvents(&dummy, FILE_NAME);
+	loadEvents(&dummy, "assignment.txt");
 
 	cout << "Please enter your IC: ";
 	IC = inputIC();
 
 	for (int i = 0; i < events.size(); i++) {
-		if (events[i].customerIC == IC) {
-			cout << "Customer Name: " << events[i].customerName << endl;
+		if (events[i].customer.customerIC == IC) {
+			cout << "Customer Name: " << events[i].customer.customerName << endl;
+			cout << "Customer Phone Number: " << events[i].customer.customerHpNo << endl;
 			cout << "Deceased Name: " << events[i].deceased.deceasedName << endl;
 			cout << "Deceased Age: " << events[i].deceased.age << endl;
 			cout << "Date: " << events[i].date.year << "-"
@@ -571,7 +630,7 @@ void eventPayment() {
 	for (size_t i = 0; i < events.size(); i++) {
 		if (!events[i].paid)
 			cout << i + 1 << ". Deceased Name:  " << events[i].deceased.deceasedName
-			<< " (Register Customer: " << events[i].customerName << ")";
+			<< " (Register Customer: " << events[i].customer.customerName << ")";
 
 		cout << "\n";
 	}
@@ -669,7 +728,7 @@ void createActivity(const Event& event) {
 	cin >> activity.time.hours >> activity.time.minute;
 
 	stringstream ss;
-	ss << event.customerName << ","
+	ss << event.customer.customerName << ","
 		<< event.deceased.deceasedName << ","
 		<< event.date.date << " " << event.date.month << " " << event.date.year << ","
 		<< activity.from << ","
@@ -718,7 +777,7 @@ void viewActivity(const string& filename, const Event& event) {
 			to_string(event.date.month) + " " +
 			to_string(event.date.year);
 
-		if (customerName == event.customerName &&
+		if (customerName == event.customer.customerName &&
 			deceasedName == event.deceased.deceasedName &&
 			eventDate == targetDate)
 		{
@@ -745,7 +804,7 @@ void viewActivity(const string& filename, const Event& event) {
 	}
 
 	if (!found) {
-		cout << "No activities found for " << event.customerName
+		cout << "No activities found for " << event.customer.customerName
 			<< " (" << event.deceased.deceasedName << ")" << endl;
 	}
 }
@@ -770,7 +829,7 @@ static int selectActivityIndex(const string& filename, const Event& event, vecto
 		if (!getline(ss, dName, ',')) continue;
 		if (!getline(ss, eDate, ',')) continue;
 
-		if (cName == event.customerName &&
+		if (cName == event.customer.customerName &&
 			dName == event.deceased.deceasedName &&
 			eDate == targetDate) {
 			matched.push_back((int)i);

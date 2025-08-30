@@ -1,0 +1,13 @@
+# Build Folders
+[Bb]in/
+[Dd]ebug/
+[Rr]elease/
+x64/Debug/
+x64/Release/
+
+# Visual Studio temporary files
+*.pdb
+*.exe
+*.obj
+*.user
+*.suo

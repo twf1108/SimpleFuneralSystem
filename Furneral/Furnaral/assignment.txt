@@ -1,2 +1,0 @@
-Sam,Sem,12,12,12,1212,12,12,1212,Basic Funeral Package,3800,No Add-on,0,12,360,3800,1
-Lam,Lom,12,12,12,1212,1212,12,12,Basic Funeral Package,3800,No Add-on,0,12,360,4160,1

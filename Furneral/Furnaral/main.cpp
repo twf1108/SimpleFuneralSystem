@@ -5,23 +5,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <format>
-#include <chrono>
-using std::cin;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::getline;
-using std::string;
-using std::vector;
-using std::ifstream;
-using std::ofstream;
-using std::stringstream;
-using std::stod;
-using std::stoi;
-using std::system;
-using std::format;
-
-using namespace std::chrono;
+using namespace std;
 
 struct Date {
     int date, month, year;
@@ -57,7 +41,6 @@ struct AddOn {
 };
 
 struct Event {
-    string customerIC;
     string customerName;
     Deceased deceased;
     Date date;
@@ -77,106 +60,6 @@ void editActivity(const string& filename, const Event& event);
 void viewActivity(const string& filename, const Event& event);
 void deleteActivity(const string& filename, const Event& event);
 void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
-
-//check ic input
-string inputIC() {
-    string ic;
-    bool valid;
-
-    while (true) {
-        cout << "Enter Customer IC (e.g., 990101-01-1234): ";
-        cin >> ic;
-
-        // Remove any '-' characters
-        for (size_t i = 0; i < ic.length(); i++) {
-            if (ic[i] == '-') {
-                ic.erase(i, 1);
-                i--; // adjust index after erase
-            }
-        }
-
-        // Check if all characters are digits
-        valid = true;
-        if (ic.length() != 12) valid = false;
-        else {
-            for (size_t i = 0; i < ic.length(); i++) {
-                if (!isdigit(ic[i])) {
-                    valid = false;
-                    break;
-                }
-            }
-        }
-
-        if (!valid) {
-            cout << "Invalid IC. Please enter exactly 12 digits.\n";
-        }
-        else {
-            break; // valid IC
-        }
-    }
-
-    return ic;
-}
-
-//check date input
-bool isDeathDateValid(int y, unsigned m, unsigned d) {
-    year_month_day ymd{ year{y}, month{m}, day{d} };
-    if (!ymd.ok()) return false;
-
-    sys_days inputDay = sys_days{ ymd };
-    sys_days today = floor<days>(system_clock::now());
-
-    if (inputDay > today) return false;
-    if (y < 1900) return false;
-    return true;
-}
-void inputDeathDate(Event& e) {
-    int y, m, d;
-    cout << "Enter Date of Death (YYYY MM DD): ";
-    cin >> y >> m >> d;
-    while (!isDeathDateValid(y, m, d)) {
-        cout << "Invalid date! Must be 1900 - today. Try again: ";
-        cin >> y >> m >> d;
-    }
-    e.deceased.deadDay.year = y;
-    e.deceased.deadDay.month = m;
-    e.deceased.deadDay.date = d;
-}
-vector<sys_days> generateFuneralDates() {
-    sys_days today = floor<days>(system_clock::now());
-    sys_days start = today + days{ 7 };   // earliest funeral date
-    sys_days end = today + days{ 14 };  // latest funeral date
-
-    vector<sys_days> dates;
-    for (sys_days d = start; d <= end; d += days{ 1 })
-        dates.push_back(d);
-
-    return dates;
-}
-void inputFuneralDate(Event& e) {
-    vector<sys_days> dates = generateFuneralDates();
-    cout << "\nAvailable Funeral Dates (1 - 2 weeks from today):\n";
-    for (int i = 0; i < dates.size(); i++) {
-        year_month_day ymd = dates[i];
-        cout << i + 1 << ". "
-            << int(ymd.year()) << "-"
-            << unsigned(ymd.month()) << "-"
-            << unsigned(ymd.day()) << "\n";
-    }
-
-    int choice;
-    cout << "Choose a date (1 - " << dates.size() << "): ";
-    cin >> choice;
-    while (choice < 1 || choice > dates.size()) {
-        cout << "Invalid choice! Try again: ";
-        cin >> choice;
-    }
-
-    year_month_day selected = dates[choice - 1];
-    e.date.year = int(selected.year());
-    e.date.month = unsigned(selected.month());
-    e.date.date = unsigned(selected.day());
-}
 
 // output vector (1 for paid, 2 for unpaid , else all)  // record for record the specific type record
 void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = nullptr) {
@@ -226,7 +109,7 @@ void selctionCheckInput(int min, int max, int& selection, const vector<string>* 
 
         if (selection == 0) break;
         if (selection < min || selection > max) {
-            std::system("cls");
+            system("cls");
             cout << "Invalid selection\n\n";
             loopMenu(*menu, &selection, *title, false);
         }
@@ -257,7 +140,7 @@ void vectorLoopAndselectionInput(int& selection, int typeOutput = 0, string titl
         }
 
         if (selection < min || selection > max) {
-            std::system("cls");
+            system("cls");
             cout << "Invalid selection" << endl;
         }
     } while (selection < min || selection > max);
@@ -277,7 +160,6 @@ void loopMenu(const vector<string>& menu, int* selection, const string title, bo
     if (runInput) selctionCheckInput(1, menu.size(), *selection, &menu, &title);
 }
 
-
 // ===== File handling ===== (allow to read paid, unpaid or all record)
 void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_NAME) {
     ifstream file(filename);
@@ -291,7 +173,6 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
             Event e;
             string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
 
-            getline(ss, e.customerIC, ',');
             getline(ss, e.customerName, ',');
             getline(ss, e.deceased.deceasedName, ',');
 
@@ -349,8 +230,7 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = FILE_N
 void saveEvents() {
     ofstream file(FILE_NAME);
     for (auto& e : events) {
-        file << e.customerIC << ","
-            << e.customerName << ","
+        file << e.customerName << ","
             << e.deceased.deceasedName << ","
             << e.deceased.age << ","
             << e.deceased.deadDay.year << "," << e.deceased.deadDay.month << "," << e.deceased.deadDay.date << ","
@@ -363,600 +243,551 @@ void saveEvents() {
     file.close();
 }
 void saveEvents(const vector<string>& lines, const string& filename) {
-    ofstream file(filename, ios::app);
+    ofstream file(filename, ios::app); 
 
-    void saveEvents(const vector<string>&lines, const string & filename) {
-        ofstream file(filename, ios::app);
-
-        if (!file.is_open()) {
-            cerr << "Error: cannot open file " << filename << endl;
-            return;
-        }
-
-        for (auto& line : lines) {
-            file << line << endl;
-            file << line << endl;
-        }
-
-        file.close();
-    }
-
-    static void overwriteFile(const string & filename, const vector<string>&lines) {
-        ofstream out(filename);
-        ofstream out(filename);
-        if (!out.is_open()) {
-            cerr << "Error: cannot open file " << filename << endl;
-            return;
-        }
-        for (const auto& l : lines) out << l << '\n';
-    }
-
-
-
-
-    // ===== Booking =====
-
-    // ===== Booking =====
-    void addOn(Event & e) {
-        vector<AddOn> addons = {
-            {"Flower Arrangement", 150.0},
-            {"Catering Service", 300.0},
-            {"Memorial Book", 50.0},
-            {"Music Service", 200.0},
-            {"Grave Marker", 400.0}
-        };
-
-        while (true) {
-            cout << "\nFuneral Add-on Selection Menu\n";
-            cout << "------------------------------\n";
-
-            for (int i = 0; i < addons.size(); i++) {
-                cout << i + 1 << ". " << addons[i].name << " - RM " << addons[i].price << endl;
-            }
-            cout << "0. No Add-on\n";
-
-            int choice;
-            cout << "Enter choice: ";
-            cin >> choice;
-
-            if (cin.fail()) {
-                cin.clear(); // clear error flag
-                cin.ignore(1000, '\n'); // discard bad input
-                cout << "Invalid input! Please enter a number.\n";
-                continue;
-            }
-
-            if (choice == 0) {
-                e.addOn = { "No Add-on", 0.0 };
-                break;
-            }
-            else if (choice >= 1 && choice <= addons.size()) {
-                e.addOn = addons.at(choice - 1);
-                break;
-            }
-            else {
-                cout << "Invalid choice! Please try again.\n";
-            }
-        }
-    }
-
-    void selectPackage(Event & e) {
-        e.basePrice = e.totalGuest * 30;
-
-        vector<Package> packages = {
-            {"Basic Funeral Package", "Professional service fees ...", 3800.00},
-            {"Standard Funeral Package", "Includes Basic + embalming ...", 5500.00},
-            {"Premium Funeral Package", "Includes Standard + premium casket ...", 9500.00}
-        };
-
-        for (int i = 0; i < packages.size(); i++) {
-            cout << i + 1 << ". " << packages[i].name << endl
-                << "Detail: " << packages[i].detail << endl
-                << " - RM" << packages[i].price << endl;
-        }
-
-        int choice;
-        cout << "Choose package (1-" << packages.size() << "): ";
-        cin >> choice;
-        e.package = packages.at(choice - 1);
-
-        string addOnChoice = "";
-        cout << "Do you want to add on (Yes or No): ";
-        cin.ignore();
-        getline(cin, addOnChoice);
-
-        if (addOnChoice == "Yes") {
-            addOn(e);
-        }
-        else {
-            e.addOn = { "No Add-on", 0.0 };
-        }
-
-        e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
-    }
-
-    void eventInput() {
-        Event e;
-
-        cin.ignore();
-        cout << "\n[Event Registration]\n";
-
-        // Customer info
-        cout << "Enter Customer IC:";
-        e.customerIC = inputIC();
-        cin.ignore();
-        cout << "Enter Customer Name: ";
-        getline(cin, e.customerName);
-
-        // Deceased info
-        cout << "Enter Deceased's Name: ";
-        getline(cin, e.deceased.deceasedName);
-
-        cout << "Enter Deceased's Age: ";
-        cin >> e.deceased.age;
-        while (cin.fail()) {
-            cin.ignore();
-            cout << "Invalid input! Please enter an integer: " << endl;
-            cin >> e.deceased.age;
-        };
-        cin.ignore();
-
-        inputDeathDate(e);
-
-        inputFuneralDate(e);
-
-        cout << "Enter total guests: ";
-        cin >> e.totalGuest;
-        while (cin.fail()) {
-            cin.ignore();
-            cout << "Invalid input! Please enter an integer: " << endl;
-            cin >> e.deceased.age;
-        };
-
-        selectPackage(e);
-
-        e.paid = false;
-
-        events.push_back(e);
-
-        cout << "\nEvent successfully registered!\n";
-
+    if (!file.is_open()) {
+        cerr << "Error: cannot open file " << filename << endl;
         return;
-
     }
 
-    void readEvent() {
-        string name = "";
-        vector<string> dummy;
-
-        loadEvents(&dummy, FILE_NAME);
-
-        cout << "Please enter your name: ";
-        cin >> name;
-
-        for (int i = 0; i < events.size(); i++) {
-            if (events[i].customerName == name) {
-                cout << "Customer Name: " << events[i].customerName << endl;
-                cout << "Deceased Name: " << events[i].deceased.deceasedName << endl;
-                cout << "Deceased Age: " << events[i].deceased.age << endl;
-                cout << "Date: " << events[i].date.year << "-"
-                    << events[i].date.month << "-"
-                    << events[i].date.date << endl;
-                cout << "Package: " << events[i].package.name
-                    << " (" << events[i].package.detail << ")" << endl;
-                cout << "Add-On: " << events[i].addOn.name
-                    << " ($" << events[i].addOn.price << ")" << endl;
-                cout << "Total Guests: " << events[i].totalGuest << endl;
-                cout << "Base Price: $" << events[i].basePrice << endl;
-                cout << "Total Price: $" << events[i].totalPrice << endl;
-                cout << "Paid: " << (events[i].paid ? "Yes" : "No") << endl;
-                cout << "-----------------------------" << endl;
-            }
-        }
-        string IC;
-        cout << "Please enter your IC to search: ";
-        IC = inputIC(); // validated IC input
-
-        bool found = false;
-        for (auto& e : events) {
-            if (e.customerIC == IC) {
-                found = true;
-                cout << "Customer Name: " << e.customerName << endl;
-                cout << "Deceased Name: " << e.deceased.deceasedName << endl;
-                cout << "Total Price: " << e.totalPrice << endl;
-                cout << "Paid: " << (e.paid ? "Yes" : "No") << endl;
-                break;
-            }
-        }
-        if (!found) {
-            cout << "No event found with this IC.\n";
-        }
+    for (auto& line : lines) {
+        file << line << endl; 
     }
 
-    void eventRegistration() {
-        vector<string> menu = { "Create Event", "Read Event" };
-        int selection = 0;
-        bool run = true;
+    file.close();
+}
 
-        while (selection == 0) {
-            std::system("cls");
+static void overwriteFile(const string& filename, const vector<string>& lines) {
+    ofstream out(filename);           
+    if (!out.is_open()) {
+        cerr << "Error: cannot open file " << filename << endl;
+        return;
+    }
+    for (const auto& l : lines) out << l << '\n';
+}
 
-            // Remove this call; no need to show paid events first
-            // vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
 
-            loopMenu(menu, &selection, "Monitor a Created Event", true);
+
+// ===== Booking =====
+void addOn(Event& e) {
+    vector<AddOn> addons = {
+        {"Flower Arrangement", 150.0},
+        {"Catering Service", 300.0},
+        {"Memorial Book", 50.0},
+        {"Music Service", 200.0},
+        {"Grave Marker", 400.0}
+    };
+
+    cout << "Funeral Add-on Selection Menu\n";
+    cout << "------------------------------\n";
+
+    for (int i = 0; i < addons.size(); i++) {
+        cout << i + 1 << ". " << addons[i].name << " - RM " << addons[i].price << endl;
+    }
+
+    int choice;
+    cout << "Enter choice (0 for none): ";
+    cin >> choice;
+
+    if (choice >= 1 && choice <= addons.size()) {
+        e.addOn = addons.at(choice - 1);
+    }
+    else {
+        e.addOn = { "No Add-on", 0.0 };
+    }
+}
+
+void selectPackage(Event& e) {
+    e.basePrice = e.totalGuest * 30;
+
+    vector<Package> packages = {
+        {"Basic Funeral Package", "Professional service fees ...", 3800.00},
+        {"Standard Funeral Package", "Includes Basic + embalming ...", 5500.00},
+        {"Premium Funeral Package", "Includes Standard + premium casket ...", 9500.00}
+    };
+
+    for (int i = 0; i < packages.size(); i++) {
+        cout << i + 1 << ". " << packages[i].name << endl
+            << "Detail: " << packages[i].detail << endl
+            << " - RM" << packages[i].price << endl;
+    }
+
+    int choice;
+    cout << "Choose package (1-" << packages.size() << "): ";
+    cin >> choice;
+    e.package = packages.at(choice - 1);   // ✅ fix
+
+    string addOnChoice;
+    cout << "Do you want to add on (Yes or No): ";
+    cin.ignore();
+    getline(cin, addOnChoice);
+
+    if (addOnChoice == "Yes") {
+        addOn(e);
+    }
+    else {
+        e.addOn = { "No Add-on", 0.0 };
+    }
+
+    e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
+}
+
+void eventInput() {
+    Event e;
+
+    cin.ignore();
+    cout << "\n[Event Registration]\n";
+
+    // Customer info
+    cout << "Enter Customer Name: ";
+    getline(cin, e.customerName);
+
+    // Deceased info
+    cout << "Enter Deceased's Name: ";
+    getline(cin, e.deceased.deceasedName);
+
+    cout << "Enter Deceased's Age: ";
+    cin >> e.deceased.age;
+    while (cin.fail()) {
+        cin.ignore();
+        cout << "Invalid input! Please enter an integer: " << endl;
+        cin >> e.deceased.age;
+    };
+
+
+    cout << "Enter Date of Death (YYYY MM DD): ";
+    cin >> e.deceased.deadDay.year >> e.deceased.deadDay.month >> e.deceased.deadDay.date;
+
+    // Funeral Event Date
+    cout << "Enter Funeral Event Date (YYYY MM DD): ";
+    cin >> e.date.year >> e.date.month >> e.date.date;
+
+    cout << "Enter total guests: ";
+    cin >> e.totalGuest;
+    while (cin.fail()) {
+        cin.ignore();
+        cout << "Invalid input! Please enter an integer: " << endl;
+        cin >> e.deceased.age;
+    };
+
+    selectPackage(e);
+
+    e.paid = false;
+
+    events.push_back(e);
+
+    cout << "\nEvent successfully registered!\n";
+
+    return;
+
+}
+
+void readEvent() {
+    string name = "";
+    vector<string> dummy;
+
+    loadEvents(&dummy, FILE_NAME);
+
+    cout << "Please enter your name: ";
+    cin >> name;
+
+    for (int i = 0; i < events.size(); i++) {
+        if (events[i].customerName == name) {
+            cout << "Customer Name: " << events[i].customerName << endl;
+            cout << "Deceased Name: " << events[i].deceased.deceasedName << endl;
+            cout << "Deceased Age: " << events[i].deceased.age << endl;
+            cout << "Date: " << events[i].date.year << "-"
+                << events[i].date.month << "-"
+                << events[i].date.date << endl;
+            cout << "Package: " << events[i].package.name
+                << " (" << events[i].package.detail << ")" << endl;
+            cout << "Add-On: " << events[i].addOn.name
+                << " ($" << events[i].addOn.price << ")" << endl;
+            cout << "Total Guests: " << events[i].totalGuest << endl;
+            cout << "Base Price: $" << events[i].basePrice << endl;
+            cout << "Total Price: $" << events[i].totalPrice << endl;
+            cout << "Paid: " << (events[i].paid ? "Yes" : "No") << endl;
+            cout << "-----------------------------" << endl;
+        }
+    }
+}
+
+void eventRegistration() {
+    vector<string> menu = { "Create Event", "Read Event" };
+    int selection = 0;
+    bool run = true;
+
+    while (selection == 0) {
+        system("cls");
+
+        // Remove this call; no need to show paid events first
+        // vectorLoopAndselectionInput(1, "[Event Monitoring]\n", &paidEvents, &run);
+
+        loopMenu(menu, &selection, "Monitor a Created Event", true);
+
+        switch (selection) {
+        case 1:
+            eventInput(); // Register new event
+            break;
+        case 2:
+            readEvent(); // Read existing events
+            break;
+        }
+    }
+}
+
+
+// ===== Payment =====
+void eventPayment() {
+    cout << "\n[Event Payment]\n";
+    cout << "Select an event to pay for:\n";
+
+    for (size_t i = 0; i < events.size(); i++) {
+        if (!events[i].paid)
+            cout << i + 1 << ". Deceased Name:  " << events[i].deceased.deceasedName
+            << " (Register Customer: " << events[i].customerName << ")";
+
+        cout << "\n";
+    }
+
+    int choice;
+    cout << "Enter event number: ";
+    cin >> choice;
+
+    if (choice < 1 || choice >(int)events.size()) {
+        cout << "Invalid choice.\n";
+        return;
+    }
+
+    Event& selected = events[choice - 1];
+    if (selected.paid) {
+        cout << "This event is already paid.\n";
+    }
+    else {
+        cout << "Processing payment for " << selected.deceased.deceasedName << "...\n";
+        selected.paid = true;
+        saveEvents();
+        cout << "Payment completed.\n";
+    }
+}
+
+// ===== Monitoring =====
+void eventMonitoring() {
+    vector<Event> paidEvents;
+    vector<string> menu = { "Create Activity","View Activity","Edit Activity","Delete Activity" };
+    int userSelection;
+    int selection = 0;
+    bool run = true;
+
+    while (selection == 0) {
+        system("cls");
+        // call function to output the paid record and let user select 
+        vectorLoopAndselectionInput(userSelection, 1, "[Event Monitoring]\n", &paidEvents, &run);
+
+        if (run) {
+            cout << endl;
+            system("cls");
+            loopMenu(menu, &selection, "Monitor a Created Event", true); // select on specific user
 
             switch (selection) {
             case 1:
-                eventInput(); // Register new event
+                createActivity(paidEvents.at(userSelection -1));
                 break;
             case 2:
-                readEvent(); // Read existing events
-                break;
-            }
-        }
-    }
-
-
-    // ===== Payment =====
-    void eventPayment() {
-        cout << "\n[Event Payment]\n";
-        cout << "Select an event to pay for:\n";
-
-        for (size_t i = 0; i < events.size(); i++) {
-            if (!events[i].paid)
-                cout << i + 1 << ". Deceased Name:  " << events[i].deceased.deceasedName
-                << " (Register Customer: " << events[i].customerName << ")";
-
-            cout << "\n";
-        }
-
-        int choice;
-        cout << "Enter event number: ";
-        cin >> choice;
-
-        if (choice < 1 || choice >(int)events.size()) {
-            cout << "Invalid choice.\n";
-            return;
-        }
-
-        Event& selected = events[choice - 1];
-        if (selected.paid) {
-            cout << "This event is already paid.\n";
-        }
-        else {
-            cout << "Processing payment for " << selected.deceased.deceasedName << "...\n";
-            selected.paid = true;
-            saveEvents();
-            cout << "Payment completed.\n";
-        }
-    }
-
-
-    // ===== Monitoring =====
-    void eventMonitoring() {
-        vector<Event> paidEvents;
-        vector<string> menu = { "Create Activity","View Activity","Edit Activity","Delete Activity" };
-        int userSelection;
-        int selection = 0;
-        bool run = true;
-
-        while (selection == 0) {
-            std::system("cls");
-            // call function to output the paid record and let user select 
-            vectorLoopAndselectionInput(userSelection, 1, "[Event Monitoring]\n", &paidEvents, &run);
-
-            if (run) {
-                cout << endl;
-                std::system("cls");
-                loopMenu(menu, &selection, "Monitor a Created Event", true); // select on specific user
-
-                switch (selection) {
-                case 1:
-                    createActivity(paidEvents.at(userSelection - 1));
-                    createActivity(paidEvents.at(userSelection - 1));
-                    break;
-                case 2:
-                    viewActivity("activity.txt", paidEvents.at(userSelection - 1));
-                    break;
-                case 3:
-                    editActivity("activity.txt", paidEvents.at(userSelection - 1));
-                    break;
-                case 4:
-                    deleteActivity("activity.txt", paidEvents.at(userSelection - 1));
-                    break;
-                }
-            }
-            else break;
-        }
-    }
-
- void createActivity(const Event & event) {
-            std::system("cls");
-            vector<string> lines;
-            string filename = "activity.txt";
-            Activity activity;
-
-            cout << "=====================================\n";
-            cout << "   " << "Create Activity" << "   \n";
-            cout << "=====================================\n";
-
-            cin.ignore();
-            cout << "Initiator: ";
-            getline(cin, activity.from);
-
-            cout << "Invitees: ";
-            getline(cin, activity.to);
-
-            cout << "Type of Activity: ";
-            getline(cin, activity.type);
-
-            cout << "Amount of Activity: ";
-            cin >> activity.amount;
-            cin.ignore();
-
-            cout << "Description: ";
-            getline(cin, activity.description);
-
-            cout << "Date (dd mm yy): ";
-            cin >> activity.date.date >> activity.date.month >> activity.date.year;
-
-            cout << "Date (hh mm): ";
-            cin >> activity.time.hours >> activity.time.minute;
-
-            stringstream ss;
-            ss << event.customerName << ","
-                ss << event.customerName << ","
-                << event.deceased.deceasedName << ","
-                << event.date.date << " " << event.date.month << " " << event.date.year << ","
-                << activity.from << ","
-                << activity.to << ","
-                << activity.type << ","
-                << activity.amount << ","
-                << activity.description << ","
-                << activity.date.date << " " << activity.date.month << " " << activity.date.year << ","
-                << activity.time.hours << " " << activity.time.minute;
-
-
-            lines.push_back(ss.str());
-            saveEvents(lines, filename);
-            //loadEvents(&lines, filename);
-}
-
-        void viewActivity(const string & filename, const Event & event) {
-            std::system("cls");
-            cout << "=====================================\n";
-            cout << "   " << "View Activity" << "   \n";
-            cout << "=====================================\n";
-
-            vector<string> lines;
-            loadEvents(&lines, filename);
-
-            bool found = false;
-
-            for (const auto& line : lines) {
-                if (line.empty()) continue;
-
-                stringstream ss(line);
-                string token;
-                vector<string> tokens;
-
-                while (getline(ss, token, ',')) {
-                    tokens.push_back(token);
-                }
-
-                if (tokens.size() < 3) continue;
-
-                string customerName = tokens[0];
-                string deceasedName = tokens[1];
-                string eventDate = tokens[2];
-                string eventDate = tokens[2];
-
-                string targetDate = to_string(event.date.date) + " " +
-                    to_string(event.date.month) + " " +
-                    to_string(event.date.year);
-
-                if (customerName == event.customerName &&
-                    deceasedName == event.deceased.deceasedName &&
-                    eventDate == targetDate)
-                {
-                    found = true;
-                    cout << "=====================================\n";
-                    cout << " Activity for " << customerName << " - " << deceasedName << "\n";
-                    cout << "=====================================\n";
-
-                    if (tokens.size() >= 10) {
-                        cout << "Initiator        : " << tokens[3] << endl;
-                        cout << "Invitees         : " << tokens[4] << endl;
-                        cout << "Type of Activity : " << tokens[5] << endl;
-                        cout << "Amount           : " << tokens[6] << endl;
-                        cout << "Description      : " << tokens[7] << endl;
-                        cout << "Activity Date    : " << tokens[8] << endl;
-                        cout << "Activity Time    : " << tokens[9] << endl;
-                    }
-                    else {
-                        cout << "⚠️ Warning: Record format is invalid: " << line << endl;
-                    }
-
-                    cout << endl;
-                }
-            }
-
-            if (!found) {
-                cout << "No activities found for " << event.customerName
-                    << " (" << event.deceased.deceasedName << ")" << endl;
-            }
-        }
-
-        static int selectActivityIndex(const string & filename, const Event & event, vector<string>&lines) {
-            lines.clear();
-            loadEvents(&lines, filename);
-            loadEvents(&lines, filename);
-
-            vector<int> matched;
-            const string targetDate =
-                to_string(event.date.date) + " " +
-                to_string(event.date.month) + " " +
-                to_string(event.date.year);
-
-            for (size_t i = 0; i < lines.size(); ++i) {
-                if (lines[i].empty()) continue;
-
-                stringstream ss(lines[i]);
-                string cName, dName, eDate;
-                string cName, dName, eDate;
-                if (!getline(ss, cName, ',')) continue;
-                if (!getline(ss, dName, ',')) continue;
-                if (!getline(ss, eDate, ',')) continue;
-
-                if (cName == event.customerName &&
-                    dName == event.deceased.deceasedName &&
-                    eDate == targetDate) {
-                    matched.push_back((int)i);
-                }
-            }
-
-            if (matched.empty()) {
-                cout << "No matching activities for this event in " << filename << endl;
-                return -1;
-            }
-
-            cout << "\nMatching activities (" << matched.size() << "):\n";
-            for (size_t j = 0; j < matched.size(); ++j) {
-                cout << j + 1 << ") " << lines[matched[j]] << '\n';
-            }
-
-            cout << "Select an activity (1-" << matched.size() << "): ";
-            int choice;
-            if (!(cin >> choice) || choice < 1 || choice >(int)matched.size()) {
-                cout << "Invalid choice.\n";
-                cin.clear();
-                cin.ignore();
-                return -1;
-            }
-            cin.ignore();
-            cin.ignore();
-
-            return matched[choice - 1];
-        }
-
-        void editActivity(const string & filename, const Event & event) {
-            std::system("cls");
-            cout << "=====================================\n";
-            cout << "   " << "Edit Activity" << "   \n";
-            cout << "=====================================\n";
-            vector<string> lines;
-            int idx = selectActivityIndex(filename, event, lines);
-            if (idx < 0) return;
-
-            vector<string> tokens;
-            {
-                stringstream ss(lines[idx]);
-                string tok;
-                while (getline(ss, tok, ',')) tokens.push_back(tok);
-            }
-
-            if (tokens.size() < 10) {
-                cout << "⚠️ Malformed record, cannot edit: " << lines[idx] << '\n';
-                return;
-            }
-
-            auto editField = [&](int fieldIndex, const string& label) {
-                cout << label << " [" << tokens[fieldIndex] << "]: ";
-                string in;
-                getline(cin, in);
-                if (!in.empty()) tokens[fieldIndex] = in;
-                };
-        };
-
-        cout << "\n=== Edit Activity Fields (press Enter to keep original) ===\n";
-        editField(3, "Initiator");
-        editField(4, "Invitees");
-        editField(5, "Type");
-        editField(6, "Amount");
-        editField(6, "Amount");
-        editField(7, "Description");
-        editField(8, "Activity Date (dd mm yy)");
-        editField(9, "Activity Time (hh mm)");
-
-        ostringstream os;
-        for (size_t i = 0; i < tokens.size(); ++i) {
-            if (i) os << ',';
-            os << tokens[i];
-        }
-        lines[idx] = os.str();
-
-        overwriteFile(filename, lines);
-        cout << "Activity updated.\n";
-    }
-
-    void deleteActivity(const string & filename, const Event & event) {
-        std::system("cls");
-        cout << "=====================================\n";
-        cout << "   " << "Delete Activity" << "   \n";
-        cout << "=====================================\n";
-
-        vector<string> lines;
-        int idx = selectActivityIndex(filename, event, lines);
-        if (idx < 0) return;
-
-        cout << "Delete this record? \n" << lines[idx] << "\nConfirm (y/n): ";
-        char yn;
-        cin >> yn;
-        cin.ignore();
-        if (yn != 'y' && yn != 'Y') {
-            cout << "Canceled.\n";
-            return;
-        }
-        lines.erase(lines.begin() + idx);
-        overwriteFile(filename, lines);
-        cout << "Activity deleted.\n";
-    }
-
-
-
-
-    int main() {
-
-        int choice = 0;
-        loadEvents(); // Load from file when program starts
-
-        vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit" };
-        do {
-            std::system("cls"); // Use "clear" for Mac/Linux
-
-            loopMenu(menu, nullptr, "Funeral Event Management System");
-
-            cout << "-------------------------------------\n";
-            cout << "Enter your choice: ";
-            cin >> choice;
-
-            switch (choice) {
-            case 1: eventRegistration(); break;
-            case 2:
-                if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
-                else eventPayment();
+                viewActivity("activity.txt", paidEvents.at(userSelection - 1));
                 break;
             case 3:
-                if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
-                else eventMonitoring();
+                editActivity("activity.txt", paidEvents.at(userSelection - 1));
                 break;
             case 4:
-                saveEvents();
-                cout << "Exiting system... Goodbye!\n";
-                break;
-            default:
-                cout << "Invalid choice! Please try again.\n";
+                deleteActivity("activity.txt", paidEvents.at(userSelection - 1));
                 break;
             }
-
-            if (choice != 4) {
-                cout << "\nPress Enter to return to the main menu...";
-                cin.ignore();
-                cin.get();
-            }
-
-        } while (choice != 4);
-
-        return 0;
+        }
+        else break;
     }
+}
+
+void createActivity(const Event &event) {
+    system("cls");
+    vector<string> lines;
+    string filename = "activity.txt";
+    Activity activity;
+
+    cout << "=====================================\n";
+    cout << "   " << "Create Activity" << "   \n";
+    cout << "=====================================\n";
+
+    cin.ignore();
+    cout << "Initiator: ";
+    getline(cin, activity.from);
+
+    cout << "Invitees: ";
+    getline(cin, activity.to);
+
+    cout << "Type of Activity: ";
+    getline(cin, activity.type);
+
+    cout << "Amount of Activity: ";
+    cin >> activity.amount;
+    cin.ignore();
+
+    cout << "Description: ";
+    getline(cin, activity.description);
+
+    cout << "Date (dd mm yy): ";
+    cin >> activity.date.date >> activity.date.month >> activity.date.year;
+
+    cout << "Date (hh mm): ";
+    cin >> activity.time.hours >> activity.time.minute;
+
+    stringstream ss;
+    ss <<  event.customerName << "," 
+        << event.deceased.deceasedName << ","
+        << event.date.date << " " << event.date.month << " " << event.date.year << ","
+        << activity.from << ","
+        << activity.to << ","
+        << activity.type << ","
+        << activity.amount << ","
+        << activity.description << ","
+        << activity.date.date << " " << activity.date.month << " " << activity.date.year << ","
+        << activity.time.hours << " " << activity.time.minute;
+
+
+    lines.push_back(ss.str());
+    saveEvents(lines, filename);
+    //loadEvents(&lines, filename);
+}
+
+void viewActivity(const string& filename, const Event& event) {
+    system("cls");
+    cout << "=====================================\n";
+    cout << "   " << "View Activity" << "   \n";
+    cout << "=====================================\n";
+
+    vector<string> lines;
+    loadEvents(&lines, filename);
+
+    bool found = false;
+
+    for (const auto& line : lines) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        string token;
+        vector<string> tokens;
+
+        while (getline(ss, token, ',')) {
+            tokens.push_back(token);
+        }
+
+        if (tokens.size() < 3) continue;
+
+        string customerName = tokens[0];
+        string deceasedName = tokens[1];
+        string eventDate = tokens[2]; 
+
+        string targetDate = to_string(event.date.date) + " " +
+            to_string(event.date.month) + " " +
+            to_string(event.date.year);
+
+        if (customerName == event.customerName &&
+            deceasedName == event.deceased.deceasedName &&
+            eventDate == targetDate)
+        {
+            found = true;
+            cout << "=====================================\n";
+            cout << " Activity for " << customerName << " - " << deceasedName << "\n";
+            cout << "=====================================\n";
+
+            if (tokens.size() >= 10) {
+                cout << "Initiator        : " << tokens[3] << endl;
+                cout << "Invitees         : " << tokens[4] << endl;
+                cout << "Type of Activity : " << tokens[5] << endl;
+                cout << "Amount           : " << tokens[6] << endl;
+                cout << "Description      : " << tokens[7] << endl;
+                cout << "Activity Date    : " << tokens[8] << endl;
+                cout << "Activity Time    : " << tokens[9] << endl;
+            }
+            else {
+                cout << "⚠️ Warning: Record format is invalid: " << line << endl;
+            }
+
+            cout << endl;
+        }
+    }
+
+    if (!found) {
+        cout << "No activities found for " << event.customerName
+            << " (" << event.deceased.deceasedName << ")" << endl;
+    }
+}
+
+static int selectActivityIndex(const string& filename, const Event& event, vector<string>& lines) {
+    lines.clear();
+    loadEvents(&lines, filename);        
+
+    vector<int> matched;
+    const string targetDate =
+        to_string(event.date.date) + " " +
+        to_string(event.date.month) + " " +
+        to_string(event.date.year);
+
+    for (size_t i = 0; i < lines.size(); ++i) {
+        if (lines[i].empty()) continue;
+
+        stringstream ss(lines[i]);
+        string cName, dName, eDate;   
+        if (!getline(ss, cName, ',')) continue;
+        if (!getline(ss, dName, ',')) continue;
+        if (!getline(ss, eDate, ',')) continue;
+
+        if (cName == event.customerName &&
+            dName == event.deceased.deceasedName &&
+            eDate == targetDate) {
+            matched.push_back((int)i);
+        }
+    }
+
+    if (matched.empty()) {
+        cout << "No matching activities for this event in " << filename << endl;
+        return -1;
+    }
+
+    cout << "\nMatching activities (" << matched.size() << "):\n";
+    for (size_t j = 0; j < matched.size(); ++j) {
+        cout << j + 1 << ") " << lines[matched[j]] << '\n';
+    }
+
+    cout << "Select an activity (1-" << matched.size() << "): ";
+    int choice;
+    if (!(cin >> choice) || choice < 1 || choice >(int)matched.size()) {
+        cout << "Invalid choice.\n";
+        cin.clear();
+        cin.ignore();
+        return -1;
+    }
+    cin.ignore(); 
+
+    return matched[choice - 1];
+}
+
+
+void editActivity(const string& filename, const Event& event) {
+    system("cls");
+    cout << "=====================================\n";
+    cout << "   " << "Edit Activity" << "   \n";
+    cout << "=====================================\n";
+    vector<string> lines;
+    int idx = selectActivityIndex(filename, event, lines);
+    if (idx < 0) return;
+
+    vector<string> tokens;
+    {
+        stringstream ss(lines[idx]);
+        string tok;
+        while (getline(ss, tok, ',')) tokens.push_back(tok);
+    }
+
+    if (tokens.size() < 10) {
+        cout << "⚠️ Malformed record, cannot edit: " << lines[idx] << '\n';
+        return;
+    }
+
+    auto editField = [&](int fieldIndex, const string& label) {
+        cout << label << " [" << tokens[fieldIndex] << "]: ";
+        string in;
+        getline(cin, in);
+        if (!in.empty()) tokens[fieldIndex] = in;
+    };
+
+    cout << "\n=== Edit Activity Fields (press Enter to keep original) ===\n";
+    editField(3, "Initiator");
+    editField(4, "Invitees");
+    editField(5, "Type");
+    editField(6, "Amount");     
+    editField(7, "Description");
+    editField(8, "Activity Date (dd mm yy)");
+    editField(9, "Activity Time (hh mm)");
+
+    ostringstream os;
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        if (i) os << ',';
+        os << tokens[i];
+    }
+    lines[idx] = os.str();
+
+    overwriteFile(filename, lines);
+    cout << "Activity updated.\n";
+}
+
+void deleteActivity(const string& filename, const Event& event) {
+    system("cls");
+    cout << "=====================================\n";
+    cout << "   " << "Delete Activity" << "   \n";
+    cout << "=====================================\n";
+
+    vector<string> lines;
+    int idx = selectActivityIndex(filename, event, lines);
+    if (idx < 0) return;
+
+    cout << "Delete this record? \n" << lines[idx] << "\nConfirm (y/n): ";
+    char yn;
+    cin >> yn;
+    cin.ignore();
+    if (yn != 'y' && yn != 'Y') {
+        cout << "Canceled.\n";
+        return;
+    }
+    lines.erase(lines.begin() + idx);
+    overwriteFile(filename, lines);
+    cout << "Activity deleted.\n";
+}
+
+
+
+
+int main() {
+
+    int choice = 0;
+    loadEvents(); // Load from file when program starts
+
+    vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit" };
+    do {
+        system("cls"); // Use "clear" for Mac/Linux
+
+        loopMenu(menu, nullptr, "Funeral Event Management System");
+
+        cout << "-------------------------------------\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: eventRegistration(); break;
+        case 2:
+            if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
+            else eventPayment();
+            break;
+        case 3:
+            if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
+            else eventMonitoring();
+            break;
+        case 4:
+            saveEvents();
+            cout << "Exiting system... Goodbye!\n";
+            break;
+        default:
+            cout << "Invalid choice! Please try again.\n";
+            break;
+        }
+
+        if (choice != 4) {
+            cout << "\nPress Enter to return to the main menu...";
+            cin.ignore();
+            cin.get();
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}

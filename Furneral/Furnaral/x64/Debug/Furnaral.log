@@ -1,90 +1,13 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(538,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (Furnaral.vcxproj, Furneral.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   main.cpp
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(229,30): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(263,50): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(354,10): error C2601: 'saveEvents': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(370,17): error C2267: 'overwriteFile': static functions with block scope are illegal
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(370,17): error C2601: 'overwriteFile': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(386,10): error C2601: 'addOn': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(429,10): error C2601: 'selectPackage': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(464,10): error C2601: 'eventInput': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(514,10): error C2601: 'readEvent': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(562,10): error C2601: 'eventRegistration': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(588,10): error C2601: 'eventPayment': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(623,10): error C2601: 'eventMonitoring': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(660,5): error C2059: syntax error: '<<'
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(661,50): error C2143: syntax error: missing ';' before '{'
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(662,9): error C2059: syntax error: '=='
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(663,54): error C2143: syntax error: missing ';' before '{'
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(664,13): error C2059: syntax error: '>>'
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(698,19): error C2065: 'event': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(699,17): error C2146: syntax error: missing ';' before identifier 'ss'
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(699,23): error C2065: 'event': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(700,20): error C2065: 'event': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(701,20): error C2065: 'event': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(701,46): error C2065: 'event': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(701,73): error C2065: 'event': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(716,14): error C2601: 'viewActivity': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(661,50):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(768,33): warning C4566: character represented by universal-character-name '\u26A0' cannot be represented in the current code page (1252)
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(768,33): warning C4566: character represented by universal-character-name '\uFE0F' cannot be represented in the current code page (1252)
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(781,20): error C2267: 'selectActivityIndex': static functions with block scope are illegal
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(781,20): error C2601: 'selectActivityIndex': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(661,50):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(833,14): error C2601: 'editActivity': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(661,50):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(850,25): warning C4566: character represented by universal-character-name '\u26A0' cannot be represented in the current code page (1252)
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(850,25): warning C4566: character represented by universal-character-name '\uFE0F' cannot be represented in the current code page (1252)
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(863,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(864,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(865,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(866,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(867,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(868,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(869,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(870,9): error C3861: 'editField': identifier not found
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(873,32): error C2065: 'tokens': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(875,19): error C2065: 'tokens': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(877,15): error C2065: 'idx': undeclared identifier
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(883,10): error C2601: 'deleteActivity': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(909,9): error C2601: 'main': local function definitions are illegal
-      D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70):
-      this line contains a '{' which has not yet been matched
-  
-D:\LYH\Github\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(351,70): error C1075: '{': no matching token found
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(126,30): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(160,50): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(609,25): warning C4566: character represented by universal-character-name '\u26A0' cannot be represented in the current code page (1252)
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(609,25): warning C4566: character represented by universal-character-name '\uFE0F' cannot be represented in the current code page (1252)
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(649,17): warning C4566: character represented by universal-character-name '\u274C' cannot be represented in the current code page (1252)
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(661,17): warning C4566: character represented by universal-character-name '\u274C' cannot be represented in the current code page (1252)
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(688,17): warning C4566: character represented by universal-character-name '\u26A0' cannot be represented in the current code page (1252)
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(688,17): warning C4566: character represented by universal-character-name '\uFE0F' cannot be represented in the current code page (1252)
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(717,13): warning C4566: character represented by universal-character-name '\u2705' cannot be represented in the current code page (1252)
+D:\SimpleFuneralSystem\Furneral\Furnaral\main.cpp(736,13): warning C4566: character represented by universal-character-name '\u2705' cannot be represented in the current code page (1252)
+  Furnaral.vcxproj -> D:\SimpleFuneralSystem\Furneral\x64\Debug\Furneral.exe

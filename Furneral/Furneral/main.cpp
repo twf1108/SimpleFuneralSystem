@@ -71,7 +71,6 @@ void loopMenu(const vector<string>& menu, int* selection = nullptr, string title
 
 
 // ==== Validation =====
-//check int
 void checkInt(int &i) {
 	while (true) {
 		if (cin.fail()) {
@@ -86,7 +85,6 @@ void checkInt(int &i) {
 	};
 }
 
-//check ic input
 string inputIC() {
 	string ic;
 	bool valid;
@@ -124,7 +122,6 @@ string inputIC() {
 	}
 }
 
-//check hpno
 string inputHp() {
 	bool valid;
 	string hpNo;
@@ -163,7 +160,7 @@ string inputHp() {
 
 }
 
-//check date input
+//date validation
 bool isDeathDateValid(int y, unsigned m, unsigned d) {
 	year_month_day ymd{ year{y}, month{m}, day{d} };
 	if (!ymd.ok()) return false;
@@ -222,6 +219,7 @@ void inputFuneralDate(Event& e) {
 	e.date.date = unsigned(selected.day());
 }
 
+// ==== Loop ====
 // output vector (1 for paid, 2 for unpaid , else all)  // record for record the specific type record
 void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = nullptr) {
 	int count = 0;
@@ -597,11 +595,14 @@ void readEvent() {
 	}
 }
 
-
-
+void updateEvent() {
+	string IC;
+	cout << "Enter your IC: ";
+	IC = inputIC();
+}
 
 void eventRegistration() {
-	vector<string> menu = { "Create Event", "Read Event" };
+	vector<string> menu = { "Create Event", "Read Event", "Update Event","Exit"};
 	int selection = 0;
 	bool run = true;
 
@@ -617,6 +618,14 @@ void eventRegistration() {
 		case 2:
 			readEvent(); // Read existing events
 			break;
+		case 3:
+			updateEvent();
+			break;
+		case 4:
+			cout << "Exiting...";
+			break;
+		default:
+			cout << "Invalid input: Please enter integer between 1 - 3.";
 		}
 	}
 }
@@ -694,6 +703,7 @@ void eventMonitoring() {
 		else break;
 	}
 }
+
 void createActivity(const Event& event) {
 	system("cls");
 	vector<string> lines;
@@ -930,8 +940,6 @@ void deleteActivity(const string& filename, const Event& event) {
 	overwriteFile(filename, lines);
 	cout << "Activity deleted.\n";
 }
-
-
 
 
 int main() {

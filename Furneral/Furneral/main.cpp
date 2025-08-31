@@ -336,9 +336,8 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = "assig
 			string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
 
 			getline(ss, e.customer.customerIC, ',');
-			getline(ss, e.customer.customerHpNo, ',');
 			getline(ss, e.customer.customerName, ',');
-			getline(ss, e.deceased.deceasedName, ',');
+			getline(ss, e.customer.customerHpNo, ',');
 
 			string ageStr;
 			getline(ss, ageStr, ',');

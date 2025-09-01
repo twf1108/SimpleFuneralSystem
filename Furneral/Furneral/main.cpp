@@ -71,7 +71,7 @@ void loopMenu(const vector<string>& menu, int* selection = nullptr, string title
 
 
 // ==== Validation =====
-void checkInt(int &i) {
+void checkInt(int& i) {
 	while (true) {
 		if (cin.fail()) {
 			cin.clear();
@@ -94,7 +94,7 @@ string inputIC() {
 		cin >> ic;
 
 		// Remove any '-' characters
-		for (size_t i = 0; i < ic.length(); i++) {
+		for (int i = 0; i < ic.length(); i++) {
 			if (ic[i] == '-') {
 				ic.erase(i, 1);
 				i--;
@@ -105,7 +105,7 @@ string inputIC() {
 		valid = true;
 		if (ic.length() != 12) valid = false;
 		else {
-			for (size_t i = 0; i < ic.length(); i++) {
+			for (int i = 0; i < ic.length(); i++) {
 				if (!isdigit(ic[i])) {
 					valid = false;
 					break;
@@ -131,7 +131,7 @@ string inputHp() {
 		getline(cin, hpNo);
 
 		// Remove any '-' characters
-		for (size_t i = 0; i < hpNo.length(); i++) {
+		for (int i = 0; i < hpNo.length(); i++) {
 			if (hpNo[i] == '-' || hpNo[i] == ' ') {
 				hpNo.erase(i, 1);
 				i--;
@@ -142,7 +142,7 @@ string inputHp() {
 		valid = true;
 		if (hpNo.length() < 10 || hpNo.length() > 11) valid = false;
 		else {
-			for (size_t i = 0; i < hpNo.length(); i++) {
+			for (int i = 0; i < hpNo.length(); i++) {
 				if (!isdigit(hpNo[i])) {
 					valid = false;
 					break;
@@ -227,7 +227,7 @@ void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = 
 
 	if (title != "") cout << title << endl;
 
-	for (size_t i = 0; i < events.size(); i++) {
+	for (int i = 0; i < events.size(); i++) {
 		// if only want to output the paid record 
 		switch (typeOutput) {
 			// output the paid record only 
@@ -278,7 +278,7 @@ void selctionCheckInput(int min, int max, int& selection, const vector<string>* 
 // Check the input in the range ? and output directly                                                     // boolean for continue run the selecion menu?
 void vectorLoopAndselectionInput(int& selection, int typeOutput = 0, string title = "", vector<Event>* records = nullptr, bool* run = nullptr) {
 	int min = 0;
-	size_t max = 0;
+	int max = 0;
 
 	do {
 		vectorLoop(typeOutput, title, records);
@@ -333,49 +333,53 @@ void loadEvents(vector<string>* lines = nullptr, const string& filename = "assig
 		while (getline(file, line)) {
 			stringstream ss(line);
 			Event e;
-			string paidStr, priceStr, addOnPriceStr, totalPrice, totalGuest, basePrice;
+			string s;
 
 			getline(ss, e.customer.customerIC, ',');
 			getline(ss, e.customer.customerName, ',');
 			getline(ss, e.customer.customerHpNo, ',');
 
-			string ageStr;
-			getline(ss, ageStr, ',');
-			e.deceased.age = ageStr.empty() ? 0 : stoi(ageStr);
+			getline(ss, e.deceased.deceasedName, ',');
+			getline(ss, s, ',');
+			e.deceased.age = s.empty() ? 0 : stoi(s);
 
 			// Deceased death date
-			string y, m, d;
-			getline(ss, y, ','); e.deceased.deadDay.year = stoi(y);
-			getline(ss, m, ','); e.deceased.deadDay.month = stoi(m);
-			getline(ss, d, ','); e.deceased.deadDay.date = stoi(d);
+			getline(ss, s, ','); e.deceased.deadDay.year = stoi(s);
+			getline(ss, s, ','); e.deceased.deadDay.month = stoi(s);
+			getline(ss, s, ','); e.deceased.deadDay.date = stoi(s);
 
 			// Event date
-			getline(ss, y, ','); e.date.year = std::stoi(y);
-			getline(ss, m, ','); e.date.month = std::stoi(m);
-			getline(ss, d, ','); e.date.date = std::stoi(d);
+			getline(ss, s, ','); e.date.year = std::stoi(s);
+			getline(ss, s, ','); e.date.month = std::stoi(s);
+			getline(ss, s, ','); e.date.date = std::stoi(s);
 
 			// Package
 			getline(ss, e.package.name, ',');
-			getline(ss, priceStr, ',');
-			e.package.price = priceStr.empty() ? 0.0 : stod(priceStr);
+			getline(ss, s, ',');
+			e.package.price = s.empty() ? 0.0 : stod(s);
 
 			// AddOn
 			getline(ss, e.addOn.name, ',');
-			getline(ss, addOnPriceStr, ',');
-			e.addOn.price = addOnPriceStr.empty() ? 0.0 : stod(addOnPriceStr);
+			getline(ss, s, ',');
+			e.addOn.price = s.empty() ? 0.0 : stod(s);
 
-			getline(ss, totalGuest, ',');
-			e.totalGuest = totalGuest.empty() ? 0 : stoi(totalGuest);
+			getline(ss, s, ',');
+			e.totalGuest = s.empty() ? 0 : stoi(s);
 
-			getline(ss, basePrice, ',');
-			e.basePrice = basePrice.empty() ? 0.0 : stod(basePrice);
+			getline(ss, s, ',');
+			e.basePrice = s.empty() ? 0.0 : stod(s);
 
-			getline(ss, totalPrice, ',');
-			e.totalPrice = totalPrice.empty() ? 0.0 : stod(totalPrice);
+			getline(ss, s, ',');
+			e.totalPrice = s.empty() ? 0.0 : stod(s);
 
 
-			getline(ss, paidStr, ',');
-			e.paid = (paidStr == "1");
+			getline(ss, s, ',');
+			if (s == "1") {
+				e.paid = true;
+			}
+			else {
+				e.paid = false;
+			}
 
 			events.push_back(e);
 		}
@@ -419,7 +423,6 @@ void saveEvents(const vector<string>& lines, const string& filename) {
 
 	for (auto& line : lines) {
 		file << line << endl;
-		file << line << endl;
 	}
 
 	file.close();
@@ -437,6 +440,7 @@ static void overwriteFile(const string& filename, const vector<string>& lines) {
 
 // ===== Registration =====
 void addOn(Event& e) {
+	system("cls");
 	vector<AddOn> addons = {
 		{"Flower Arrangement", 150.0},
 		{"Catering Service", 300.0},
@@ -479,6 +483,7 @@ void addOn(Event& e) {
 }
 
 void selectPackage(Event& e) {
+	system("cls");
 	e.basePrice = e.totalGuest * 30;
 
 	vector<Package> packages = {
@@ -514,6 +519,7 @@ void selectPackage(Event& e) {
 }
 
 void eventInput() {
+	system("cls");
 	Event e;
 
 	cin.ignore();
@@ -551,7 +557,7 @@ void eventInput() {
 	e.paid = false;
 
 	events.push_back(e);
-
+	saveEvents();
 	cout << "\nEvent successfully registered!\n";
 
 	return;
@@ -559,6 +565,7 @@ void eventInput() {
 }
 
 void readEvent() {
+	system("cls");
 	string IC = "";
 	bool found = false;
 	vector<string> dummy;
@@ -568,23 +575,23 @@ void readEvent() {
 	cout << "Please enter your IC: ";
 	IC = inputIC();
 
+	int count = 0;
 	for (int i = 0; i < events.size(); i++) {
 		if (events[i].customer.customerIC == IC) {
-			cout << "Customer Name: " << events[i].customer.customerName << endl;
-			cout << "Customer Phone Number: " << events[i].customer.customerHpNo << endl;
-			cout << "Deceased Name: " << events[i].deceased.deceasedName << endl;
-			cout << "Deceased Age: " << events[i].deceased.age << endl;
-			cout << "Date: " << events[i].date.year << "-"
+			count++;
+			cout << "No " << count << ": " << endl;
+			cout <<  "  Deceased Name: " << events[i].deceased.deceasedName << endl;
+			cout <<  "  Deceased Age:  " << events[i].deceased.age << endl;
+			cout <<  "  Date:          " << events[i].date.year << "-"
 				<< events[i].date.month << "-"
 				<< events[i].date.date << endl;
-			cout << "Package: " << events[i].package.name
-				<< " (" << events[i].package.detail << ")" << endl;
-			cout << "Add-On: " << events[i].addOn.name
-				<< " ($" << events[i].addOn.price << ")" << endl;
-			cout << "Total Guests: " << events[i].totalGuest << endl;
-			cout << "Base Price: $" << events[i].basePrice << endl;
-			cout << "Total Price: $" << events[i].totalPrice << endl;
-			cout << "Paid: " << (events[i].paid ? "Yes" : "No") << endl;
+			cout <<  "  Package:       " << events[i].package.name << endl;
+			cout <<  "  Add-On:        " << events[i].addOn.name
+				<< "   ($" << events[i].addOn.price << ")" << endl;
+			cout <<  "  Total Guests:  " << events[i].totalGuest << endl;
+			cout <<  "  Base Price:    RM" << events[i].basePrice << endl;
+			cout <<  "  Total Price:   RM" << events[i].totalPrice << endl;
+			cout <<  "  Paid:          " << (events[i].paid ? "Yes" : "No") << endl;
 			cout << "-----------------------------" << endl;
 		}
 		else if (!found) {
@@ -595,13 +602,112 @@ void readEvent() {
 }
 
 void updateEvent() {
-	string IC;
-	cout << "Enter your IC: ";
-	IC = inputIC();
+	system("cls");
+	loadEvents(); 
+
+	string IC = inputIC();
+
+	vector<Event> temp; 
+	for (int i = 0; i < events.size(); i++) {
+		if (events[i].customer.customerIC == IC && !events[i].paid) {
+			temp.push_back(events[i]);
+			events.erase(events.begin() + i);
+		}
+	} 
+
+	if (temp.empty()) {
+		cout << "No unpaid events found with this IC.\n";
+		return;
+	}
+
+	cout << "\n[Your Registered Events]\n";
+	for (int j = 0; j < temp.size(); ++j) {
+		cout << j + 1 << ". "
+			<< temp[j].deceased.deceasedName
+			<< " | Date: " << temp[j].date.year << "-"
+			<< temp[j].date.month << "-"
+			<< temp[j].date.date
+			<< " | Package: " << temp[j].package.name << "\n";
+	}
+
+	cout << "\nChoose event to update (1-" << temp.size() << "): ";
+	int choice;
+	cin >> choice;
+	cin.ignore();
+
+	if (choice < 1 || choice >(int)temp.size()) {
+		cout << "Invalid choice.\n";
+		events.insert(events.end(), temp.begin(), temp.end());
+		return;
+	}
+
+	Event& e = temp[choice - 1]; 
+
+	string input;
+	cout << "Update Customer Name (" << e.customer.customerName << "): ";
+	getline(cin, input);
+	if (!input.empty()) e.customer.customerName = input;
+
+	cout << "Update Deceased Name (" << e.deceased.deceasedName << "): ";
+	getline(cin, input);
+	if (!input.empty()) e.deceased.deceasedName = input;
+
+	events.insert(events.end(), temp.begin(), temp.end());
+
+	saveEvents();
+	cout << "Event updated successfully!\n";
+}
+
+void delEvent() {
+	system("cls");
+	loadEvents();
+
+	string IC = inputIC();
+
+	vector<Event> temp;
+	for (int i = 0; i < events.size(); i++) {
+		if (events[i].customer.customerIC == IC && !events[i].paid) {
+			temp.push_back(events[i]);
+			events.erase(events.begin() + i);
+		}
+	}
+
+	if (temp.empty()) {
+		cout << "No unpaid events found with this IC.\n";
+		return;
+	}
+
+	cout << "\n[Your Registered Events]\n";
+	for (int j = 0; j < temp.size(); ++j) {
+		cout << j + 1 << ". "
+			<< temp[j].deceased.deceasedName
+			<< " | Date: " << temp[j].date.year << "-"
+			<< temp[j].date.month << "-"
+			<< temp[j].date.date
+			<< " | Package: " << temp[j].package.name << "\n";
+	}
+
+	cout << "\nChoose event to delete:";
+	int choice;
+	cin >> choice;
+	cin.ignore();
+
+	if (choice < 1 || choice > temp.size()) {
+		cout << "Invalid choice.\n";
+		events.insert(events.end(), temp.begin(), temp.end());
+		return;
+	}
+	else {
+		temp.erase(temp.begin() + (choice-1));
+		cout << "Event deleted successfully." << endl;
+		events.insert(events.end(), temp.begin(), temp.end());
+
+		saveEvents();
+	}
 }
 
 void eventRegistration() {
-	vector<string> menu = { "Create Event", "Read Event", "Update Event","Exit"};
+	vector<string> menu = { "Create Event", "Read Event", "Update Event","Delete Event", "Exit" };
 	int selection = 0;
 	bool run = true;
 
@@ -612,19 +718,22 @@ void eventRegistration() {
 
 		switch (selection) {
 		case 1:
-			eventInput(); // Register new event
+			eventInput();
 			break;
 		case 2:
-			readEvent(); // Read existing events
+			readEvent();
 			break;
 		case 3:
 			updateEvent();
 			break;
 		case 4:
+			delEvent();
+			break;
+		case 5:
 			cout << "Exiting...";
 			break;
 		default:
-			cout << "Invalid input: Please enter integer between 1 - 3.";
+			cout << "Invalid input: Please enter integer between 1 - 4.";
 		}
 	}
 }
@@ -635,7 +744,7 @@ void eventPayment() {
 	cout << "\n[Event Payment]\n";
 	cout << "Select an event to pay for:\n";
 
-	for (size_t i = 0; i < events.size(); i++) {
+	for (int i = 0; i < events.size(); i++) {
 		if (!events[i].paid)
 			cout << i + 1 << ". Deceased Name:  " << events[i].deceased.deceasedName
 			<< " (Register Customer: " << events[i].customer.customerName << ")";
@@ -829,7 +938,7 @@ static int selectActivityIndex(const string& filename, const Event& event, vecto
 		to_string(event.date.month) + " " +
 		to_string(event.date.year);
 
-	for (size_t i = 0; i < lines.size(); ++i) {
+	for (int i = 0; i < lines.size(); ++i) {
 		if (lines[i].empty()) continue;
 
 		stringstream ss(lines[i]);
@@ -851,7 +960,7 @@ static int selectActivityIndex(const string& filename, const Event& event, vecto
 	}
 
 	cout << "\nMatching activities (" << matched.size() << "):\n";
-	for (size_t j = 0; j < matched.size(); ++j) {
+	for (int j = 0; j < matched.size(); ++j) {
 		cout << j + 1 << ") " << lines[matched[j]] << '\n';
 	}
 
@@ -907,7 +1016,7 @@ void editActivity(const string& filename, const Event& event) {
 	editField(9, "Activity Time (hh mm)");
 
 	stringstream os;
-	for (size_t i = 0; i < tokens.size(); ++i) {
+	for (int i = 0; i < tokens.size(); ++i) {
 		if (i) os << ',';
 		os << tokens[i];
 	}

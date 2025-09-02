@@ -69,7 +69,6 @@ void viewActivity(const string& filename, const Event& event);
 void deleteActivity(const string& filename, const Event& event);
 void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
 
-
 // ==== Validation =====
 void checkInt(int& i) {
 	while (true) {
@@ -221,6 +220,18 @@ void inputFuneralDate(Event& e) {
 
 // ==== Loop ====
 // output vector (1 for paid, 2 for unpaid , else all)  // record for record the specific type record
+vector<Event> getUnpaidEventsByIC(string IC) {
+	vector<Event> temp;
+	for (int i = 0; i < events.size(); i++) {
+		if (events[i].customer.customerIC == IC && !events[i].paid) {
+			temp.push_back(events[i]);
+			events.erase(events.begin() + i);
+			i--; // Adjust index after erasure
+		}
+	}
+	return temp;
+}
+
 void vectorLoop(int typeOutput = 0, string title = "", vector<Event>* records = nullptr) {
 	int count = 0;
 	(*records).clear();
@@ -283,7 +294,7 @@ void vectorLoopAndselectionInput(int& selection, int typeOutput = 0, string titl
 	do {
 		vectorLoop(typeOutput, title, records);
 
-		max = (*records).size();
+		max = int((*records).size());
 
 		if (max == 0) {
 			cout << "Record not found..." << endl;
@@ -441,6 +452,7 @@ static void overwriteFile(const string& filename, const vector<string>& lines) {
 // ===== Registration =====
 void addOn(Event& e) {
 	system("cls");
+	cout << "\n[Add On]\n";
 	vector<AddOn> addons = {
 		{"Flower Arrangement", 150.0},
 		{"Catering Service", 300.0},
@@ -484,6 +496,7 @@ void addOn(Event& e) {
 
 void selectPackage(Event& e) {
 	system("cls");
+	cout << "\n[Select Event]\n";
 	e.basePrice = e.totalGuest * 30;
 
 	vector<Package> packages = {
@@ -561,7 +574,6 @@ void eventInput() {
 	cout << "\nEvent successfully registered!\n";
 
 	return;
-
 }
 
 void readEvent() {
@@ -603,33 +615,28 @@ void readEvent() {
 
 void updateEvent() {
 	system("cls");
-	loadEvents(); 
-
+	loadEvents();
 	string IC = inputIC();
 
-	vector<Event> temp; 
-	for (int i = 0; i < events.size(); i++) {
-		if (events[i].customer.customerIC == IC && !events[i].paid) {
-			temp.push_back(events[i]);
-			events.erase(events.begin() + i);
-		}
-	} 
+	vector<Event> temp = getUnpaidEventsByIC(IC);
 
 	if (temp.empty()) {
 		cout << "No unpaid events found with this IC.\n";
 		return;
 	}
 
+	// Display events
 	cout << "\n[Your Registered Events]\n";
 	for (int j = 0; j < temp.size(); ++j) {
 		cout << j + 1 << ". "
 			<< temp[j].deceased.deceasedName
-			<< " | Date: " << temp[j].date.year << "-"
+			<< " | Funeral Date: " << temp[j].date.year << "-"
 			<< temp[j].date.month << "-"
 			<< temp[j].date.date
 			<< " | Package: " << temp[j].package.name << "\n";
 	}
 
+	// Get user choice
 	cout << "\nChoose event to update (1-" << temp.size() << "): ";
 	int choice;
 	cin >> choice;
@@ -641,42 +648,71 @@ void updateEvent() {
 		return;
 	}
 
-	Event& e = temp[choice - 1]; 
+	Event& e = temp[choice - 1];
 
-	string input;
-	cout << "Update Customer Name (" << e.customer.customerName << "): ";
-	getline(cin, input);
-	if (!input.empty()) e.customer.customerName = input;
+	bool editing = true;
+	while (editing) {
+		system("cls");
+		cout << "\n[Update Event]\n";
+		cout << "1. Funeral Date (" << e.date.year << "-"
+			<< e.date.month << "-"
+			<< e.date.date << ")\n";
+		cout << "2. Guests (" << e.totalGuest << ")\n";
+		cout << "3. Package (" << e.package.name << ")\n";
+		cout << "4. Add-On (" << e.addOn.name << ")\n";
+		cout << "0. Finish Editing\n";
+		cout << "Choose field to update: ";
+		int opt;
+		cin >> opt;
+		cin.ignore();
 
-	cout << "Update Deceased Name (" << e.deceased.deceasedName << "): ";
-	getline(cin, input);
-	if (!input.empty()) e.deceased.deceasedName = input;
+		switch (opt) {
+		case 1:
+			inputFuneralDate(e);
+			break;
+		case 2:
+			cout << "Enter new total guests: ";
+			cin >> e.totalGuest;
+			checkInt(e.totalGuest);
+			cin.ignore();
+			break;
+		case 3:
+			selectPackage(e);
+			break;
+		case 4:
+			addOn(e);
+			break;
+		case 0:
+			editing = false;
+			break;
+		default:
+			cout << "Invalid choice.\n";
+		}
 
+		// Recalculate price after every change
+		e.totalPrice = e.package.price + e.addOn.price + (e.totalGuest * 30);
+	}
+
+	// Put all events back and save
 	events.insert(events.end(), temp.begin(), temp.end());
-
 	saveEvents();
 	cout << "Event updated successfully!\n";
 }
 
 void delEvent() {
 	system("cls");
+	cout << "\n[Delete Event]\n";
 	loadEvents();
-
 	string IC = inputIC();
 
-	vector<Event> temp;
-	for (int i = 0; i < events.size(); i++) {
-		if (events[i].customer.customerIC == IC && !events[i].paid) {
-			temp.push_back(events[i]);
-			events.erase(events.begin() + i);
-		}
-	}
+	vector<Event> temp = getUnpaidEventsByIC(IC);
 
 	if (temp.empty()) {
 		cout << "No unpaid events found with this IC.\n";
 		return;
 	}
 
+	// Display events
 	cout << "\n[Your Registered Events]\n";
 	for (int j = 0; j < temp.size(); ++j) {
 		cout << j + 1 << ". "
@@ -687,6 +723,7 @@ void delEvent() {
 			<< " | Package: " << temp[j].package.name << "\n";
 	}
 
+	// Get user choice
 	cout << "\nChoose event to delete:";
 	int choice;
 	cin >> choice;
@@ -697,13 +734,11 @@ void delEvent() {
 		events.insert(events.end(), temp.begin(), temp.end());
 		return;
 	}
-	else {
-		temp.erase(temp.begin() + (choice-1));
-		cout << "Event deleted successfully." << endl;
-		events.insert(events.end(), temp.begin(), temp.end());
 
-		saveEvents();
-	}
+	temp.erase(temp.begin() + (choice - 1));
+	events.insert(events.end(), temp.begin(), temp.end());
+	saveEvents();
+	cout << "Event deleted successfully.\n";
 }
 
 void eventRegistration() {

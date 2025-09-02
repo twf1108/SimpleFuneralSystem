@@ -63,6 +63,14 @@ struct Event {
 
 vector<Event> events;
 
+//Event
+void updateEvent();
+void eventInput();
+void eventRegistration();
+void delEvent();
+void readEvent();
+
+//Activity
 void createActivity(const Event& event);
 void editActivity(const string& filename, const Event& event);
 void viewActivity(const string& filename, const Event& event);
@@ -541,12 +549,27 @@ void eventInput() {
 	// Customer info
 	cout << "Enter Customer IC:";
 	e.customer.customerIC = inputIC();
-	cin.ignore();
+
+	for (auto& ev : events) {
+		if (ev.customer.customerIC == e.customer.customerIC) {
+			cout << "\nThis IC is already registered under the name \""
+				<< ev.customer.customerName << "\".\n";
+
+			cout << "(Using existing name: " << ev.customer.customerName << ")\n";
+			e.customer.customerName = ev.customer.customerName;
+
+			cout << "(Using existing phone number: " << ev.customer.customerHpNo << ")\n";
+			e.customer.customerHpNo = ev.customer.customerHpNo;
+			goto proceed;
+		}
+	}
+
 	cout << "Enter Customer Name: ";
 	getline(cin, e.customer.customerName);
 	e.customer.customerHpNo = inputHp();
 
-	// Deceased info
+proceed:
+	cin.ignore();
 	cout << "Enter Deceased's Name: ";
 	getline(cin, e.deceased.deceasedName);
 
@@ -556,7 +579,6 @@ void eventInput() {
 	cin.ignore();
 
 	inputDeathDate(e);
-
 	inputFuneralDate(e);
 
 	cin.ignore();
@@ -572,8 +594,6 @@ void eventInput() {
 	events.push_back(e);
 	saveEvents();
 	cout << "\nEvent successfully registered!\n";
-
-	return;
 }
 
 void readEvent() {
@@ -592,18 +612,18 @@ void readEvent() {
 		if (events[i].customer.customerIC == IC) {
 			count++;
 			cout << "No " << count << ": " << endl;
-			cout <<  "  Deceased Name: " << events[i].deceased.deceasedName << endl;
-			cout <<  "  Deceased Age:  " << events[i].deceased.age << endl;
-			cout <<  "  Date:          " << events[i].date.year << "-"
+			cout << "  Deceased Name  :" << events[i].deceased.deceasedName << endl;
+			cout << "  Deceased Age   :" << events[i].deceased.age << endl;
+			cout << "  Date           :" << events[i].date.year << "-"
 				<< events[i].date.month << "-"
 				<< events[i].date.date << endl;
-			cout <<  "  Package:       " << events[i].package.name << endl;
-			cout <<  "  Add-On:        " << events[i].addOn.name
+			cout << "  Package        :" << events[i].package.name << endl;
+			cout << "  Add-On         :" << events[i].addOn.name
 				<< "   ($" << events[i].addOn.price << ")" << endl;
-			cout <<  "  Total Guests:  " << events[i].totalGuest << endl;
-			cout <<  "  Base Price:    RM" << events[i].basePrice << endl;
-			cout <<  "  Total Price:   RM" << events[i].totalPrice << endl;
-			cout <<  "  Paid:          " << (events[i].paid ? "Yes" : "No") << endl;
+			cout << "  Total Guests   :" << events[i].totalGuest << endl;
+			cout << "  Base Price     : RM" << events[i].basePrice << endl;
+			cout << "  Total Price    : RM" << events[i].totalPrice << endl;
+			cout << "  Paid           :" << (events[i].paid ? "Yes" : "No") << endl;
 			cout << "-----------------------------" << endl;
 		}
 		else if (!found) {
@@ -748,28 +768,32 @@ void eventRegistration() {
 
 	while (selection == 0) {
 		system("cls");
-
-		loopMenu(menu, &selection, "Monitor a Created Event", true);
-
-		switch (selection) {
-		case 1:
-			eventInput();
-			break;
-		case 2:
-			readEvent();
-			break;
-		case 3:
-			updateEvent();
-			break;
-		case 4:
-			delEvent();
-			break;
-		case 5:
-			cout << "Exiting...";
-			break;
-		default:
-			cout << "Invalid input: Please enter integer between 1 - 4.";
+		loopMenu(menu, &selection, "Event Registration", true);
+		if (run) {
+			switch (selection) {
+			case 1:
+				eventInput();
+				break;
+			case 2:
+				readEvent();
+				break;
+			case 3:
+				updateEvent();
+				break;
+			case 4:
+				delEvent();
+				break;
+			case 5:
+				cout << "Exiting...";
+				break;
+			default:
+				cout << "Invalid input: Please enter integer between 1 - 4.";
+				break;
+			}
 		}
+		else break;
+
+
 	}
 }
 
@@ -847,6 +871,7 @@ void eventMonitoring() {
 	}
 }
 
+// ===== Activity =====
 void createActivity(const Event& event) {
 	system("cls");
 	vector<string> lines;

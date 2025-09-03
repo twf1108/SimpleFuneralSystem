@@ -4,6 +4,9 @@
 [Rr]elease/
 x64/Debug/
 x64/Release/
+/x64/
+/Debug/
+/Release/
 
 # Visual Studio temporary files
 *.pdb

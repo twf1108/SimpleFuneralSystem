@@ -88,6 +88,15 @@ void viewActivity(const string& filename, const Event& event);
 void deleteActivity(const string& filename, const Event& event);
 void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
 
+//Validation
+void checkInt(int& i);
+string inputIC();
+string inputHp();
+bool isDeathDateValid(int y, unsigned m, unsigned d);
+void inputDeathDate(Event& e);
+vector<sys_days> generateFuneralDates();
+void inputFuneralDate(Event& e);
+
 // ==== Validation =====
 void checkInt(int& i) {
 	while (true) {
@@ -480,7 +489,6 @@ void registerAcc() {
 	getline(cin, name);
 	hp = inputHp();
 	cout << "Enter your password: ";
-	cin.ignore();
 	getline(cin, password);
 	ifstream readFile("accounts.txt");
 
@@ -761,7 +769,7 @@ void updateEvent() {
 	}
 
 	// Display unpaid events using vectorLoop
-	cout << "\n[Your Unpaid Registered Events]\n";
+	cout << "\n[Unpaid Registered Events]\n";
 	vectorLoop(0, "", &userEvents); // 0 = all, but we only added unpaid to userEvents
 
 	// Let user select event to update
@@ -810,8 +818,7 @@ void updateEvent() {
 		e.totalPrice = e.package.price + e.addOn.price + (e.totalGuest * 30);
 	}
 
-	// Update the original events vector
-	// Remove old unpaid events for this IC first
+	//Update events vector: remove old unpaid events for this IC
 	for (int i = 0; i < events.size(); i++) {
 		if (events[i].customer.customerIC == IC && !events[i].paid) {
 			events.erase(events.begin() + i);
@@ -824,7 +831,6 @@ void updateEvent() {
 	saveEvents();
 	cout << "Event updated successfully!\n";
 }
-
 
 void delEvent(Account &acc) {
 	system("cls");
@@ -898,8 +904,6 @@ void eventRegistration(Account &acc) {
 			}
 		}
 		else break;
-
-
 	}
 }
 
@@ -977,7 +981,6 @@ void eventMonitoring() {
 	}
 }
 
-// ===== Activity =====
 void createActivity(const Event& event) {
 	system("cls");
 	vector<string> lines;
@@ -1214,6 +1217,7 @@ void deleteActivity(const string& filename, const Event& event) {
 	overwriteFile(filename, lines);
 	cout << "Activity deleted.\n";
 }
+
 
 
 void afterLogin(Account &acc) {

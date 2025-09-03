@@ -580,18 +580,17 @@ void accountManagement(vector<Event>& events) {
 		loopMenu(menu, &selection, "Account Management", true);
 
 		switch (selection) {
+		case 0:
+			cout << "Exiting...\n";
+			return;
 		case 1:
 			registerAcc();
 			break;
 		case 2:
 			loginAcc(events);
 			break;
-		case 3:
-			cout << "Exiting...\n";
-			run = false;
-			break;
 		default:
-			cout << "Invalid input: Please enter integer between 1 - 3.\n";
+			cout << "Invalid input: Please enter integer between 1-2.\n";
 			break;
 		}
 
@@ -1274,7 +1273,9 @@ void afterLogin(Account& acc, vector<Event>& events) {
 	int choice = 0;
 	loadEvents(events); 
 
-	vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit" };
+	vector<string> menu = { "Register Funeral Event", "Payment for a Registered Event", "Monitor a Created Event", "Exit" };
+	vector<string> event = { "Create Event", "Read Event", "Update Event", "Delete Event", "Exit" };
+
 	do {
 		system("cls");
 
@@ -1292,7 +1293,8 @@ void afterLogin(Account& acc, vector<Event>& events) {
 			if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
 			else eventPayment(events);  
 			break;
-		case 3:
+
+		case 3: // Monitoring
 			if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
 			else eventMonitoring(acc, events); 
 			break;
@@ -1300,6 +1302,7 @@ void afterLogin(Account& acc, vector<Event>& events) {
 			saveEvents(events);  
 			cout << "Exiting system... Goodbye!\n";
 			break;
+
 		default:
 			cout << "Invalid choice! Please try again.\n";
 			break;

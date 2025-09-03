@@ -32,6 +32,11 @@ struct Customer {
 	string customerHpNo = "";
 };
 
+struct Account {
+	Customer customer;
+	string password = "";
+};
+
 struct Deceased {
 	string deceasedName = "";
 	int age = 0;
@@ -63,12 +68,18 @@ struct Event {
 
 vector<Event> events;
 
+//Account
+void registerAcc();
+Account loginAcc();
+void accountManagement();
+void afterLogin(Account &acc);
+
 //Event
 void updateEvent();
-void eventInput();
-void eventRegistration();
-void delEvent();
-void readEvent();
+void eventInput(Account &acc);
+void eventRegistration(Account &acc);
+void delEvent(Account &acc);
+void readEvent(Account &acc);
 
 //Activity
 void createActivity(const Event& event);
@@ -97,7 +108,7 @@ string inputIC() {
 	bool valid;
 
 	while (true) {
-		cout << "Enter Customer IC (e.g., 990101-01-1234): ";
+		cout << "Enter IC (e.g., 990101-01-1234): ";
 		cin >> ic;
 
 		// Remove any '-' characters
@@ -234,7 +245,7 @@ vector<Event> getUnpaidEventsByIC(string IC) {
 		if (events[i].customer.customerIC == IC && !events[i].paid) {
 			temp.push_back(events[i]);
 			events.erase(events.begin() + i);
-			i--; // Adjust index after erasure
+			i--; 
 		}
 	}
 	return temp;
@@ -456,6 +467,125 @@ static void overwriteFile(const string& filename, const vector<string>& lines) {
 	for (const auto& l : lines) out << l << '\n';
 }
 
+// ===== Account =====
+void registerAcc() {
+	string ic, name, password, hp;
+	string line;
+
+	system("cls");
+	cout << "\n[Register Account]\n";
+	ic = inputIC();
+	cout << "Enter your name: ";
+	cin.ignore();
+	getline(cin, name);
+	hp = inputHp();
+	cout << "Enter your password: ";
+	cin.ignore();
+	getline(cin, password);
+	ifstream readFile("accounts.txt");
+
+	ofstream file("accounts.txt", ios::app);
+	if (file.is_open()) {
+		while (getline(readFile, line)) {
+			stringstream ss(line);
+			string tempIc, tempName, tempPass, tempHp;
+			getline(ss, tempIc, ',');
+			getline(ss,tempName, ',');
+			getline(ss, tempPass, ',');
+			getline(ss, tempHp, ',');
+			if (tempIc == ic) {
+				cout << "Error: IC already registered.\n";
+				file.close();
+				return;
+			}
+		}
+		file << ic << "," << name << "," << password << "," << hp << "\n";
+		cout << "Account registered successfully.\n";
+	}
+	else {
+		cout << "Error: Unable to open accounts.txt\n";
+	}
+	file.close();
+}
+
+Account loginAcc() {
+	Account acc;
+	string icInput, passwordInput;
+
+	system("cls");
+	cout << "\n[Login Account]\n";
+	icInput = inputIC();
+	cout << "Enter your password: ";
+	cin >> passwordInput;
+
+	ifstream file("accounts.txt");
+	if (!file.is_open()) {
+		cout << "Error: Unable to open accounts.txt\n";
+		return acc;
+	}
+
+	string line;
+	bool found = false;
+	while (getline(file, line)) {
+		if (line.empty()) continue;
+		stringstream ss(line);
+		string ic, name, pass, hp;
+		getline(ss, ic, ',');
+		getline(ss, name, ',');
+		getline(ss, pass, ',');
+		getline(ss, hp, ',');
+
+		if (ic == icInput && pass == passwordInput) {
+			acc.customer.customerIC = ic;
+			acc.customer.customerName = name;
+			acc.customer.customerHpNo = hp;
+			acc.password = pass;
+			found = true;
+			break;
+		}
+	}
+
+	file.close();
+
+	if (found) {
+		cout << "Login successful.\n";
+		afterLogin(acc);
+	}
+	else {
+		cout << "Login failed: Incorrect IC or password.\n";
+	}
+
+	return acc;
+}
+
+void accountManagement() {
+	vector<string> menu = { "Register Account", "Login Account", "Exit" };
+	int selection = 0;
+	bool run = true;
+
+	while (run) {
+		system("cls");
+		loopMenu(menu, &selection, "Account Management", true);
+
+		switch (selection) {
+		case 1:
+			registerAcc();
+			break;
+		case 2:
+			loginAcc();
+			break;
+		case 3:
+			cout << "Exiting...\n";
+			run = false;
+			break;
+		default:
+			cout << "Invalid input: Please enter integer between 1 - 3.\n";
+			break;
+		}
+
+		system("pause");
+	}
+}
 
 // ===== Registration =====
 void addOn(Event& e) {
@@ -539,7 +669,7 @@ void selectPackage(Event& e) {
 	e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
 }
 
-void eventInput() {
+void eventInput(Account &acc) {
 	system("cls");
 	Event e;
 
@@ -547,29 +677,10 @@ void eventInput() {
 	cout << "\n[Event Registration]\n";
 
 	// Customer info
-	cout << "Enter Customer IC:";
-	e.customer.customerIC = inputIC();
+	e.customer.customerIC = acc.customer.customerIC;
+	e.customer.customerName = acc.customer.customerName;
+	e.customer.customerHpNo = acc.customer.customerHpNo;
 
-	for (auto& ev : events) {
-		if (ev.customer.customerIC == e.customer.customerIC) {
-			cout << "\nThis IC is already registered under the name \""
-				<< ev.customer.customerName << "\".\n";
-
-			cout << "(Using existing name: " << ev.customer.customerName << ")\n";
-			e.customer.customerName = ev.customer.customerName;
-
-			cout << "(Using existing phone number: " << ev.customer.customerHpNo << ")\n";
-			e.customer.customerHpNo = ev.customer.customerHpNo;
-			goto proceed;
-		}
-	}
-
-	cout << "Enter Customer Name: ";
-	getline(cin, e.customer.customerName);
-	e.customer.customerHpNo = inputHp();
-
-proceed:
-	cin.ignore();
 	cout << "Enter Deceased's Name: ";
 	getline(cin, e.deceased.deceasedName);
 
@@ -596,7 +707,7 @@ proceed:
 	cout << "\nEvent successfully registered!\n";
 }
 
-void readEvent() {
+void readEvent(Account &acc) {
 	system("cls");
 	string IC = "";
 	bool found = false;
@@ -604,12 +715,9 @@ void readEvent() {
 
 	loadEvents(&dummy, "assignment.txt");
 
-	cout << "Please enter your IC: ";
-	IC = inputIC();
-
 	int count = 0;
 	for (int i = 0; i < events.size(); i++) {
-		if (events[i].customer.customerIC == IC) {
+		if (events[i].customer.customerIC == acc.customer.customerIC) {
 			count++;
 			cout << "No " << count << ": " << endl;
 			cout << "  Deceased Name  :" << events[i].deceased.deceasedName << endl;
@@ -635,48 +743,46 @@ void readEvent() {
 
 void updateEvent() {
 	system("cls");
-	loadEvents();
+	loadEvents(); // Load events from file
+
 	string IC = inputIC();
 
-	vector<Event> temp = getUnpaidEventsByIC(IC);
+	// Collect all unpaid events for this IC
+	vector<Event> userEvents;
+	for (int i = 0; i < events.size(); i++) {
+		if (events[i].customer.customerIC == IC && !events[i].paid) {
+			userEvents.push_back(events[i]);
+		}
+	}
 
-	if (temp.empty()) {
+	if (userEvents.empty()) {
 		cout << "No unpaid events found with this IC.\n";
 		return;
 	}
 
-	// Display events
-	cout << "\n[Your Registered Events]\n";
-	for (int j = 0; j < temp.size(); ++j) {
-		cout << j + 1 << ". "
-			<< temp[j].deceased.deceasedName
-			<< " | Funeral Date: " << temp[j].date.year << "-"
-			<< temp[j].date.month << "-"
-			<< temp[j].date.date
-			<< " | Package: " << temp[j].package.name << "\n";
-	}
+	// Display unpaid events using vectorLoop
+	cout << "\n[Your Unpaid Registered Events]\n";
+	vectorLoop(0, "", &userEvents); // 0 = all, but we only added unpaid to userEvents
 
-	// Get user choice
-	cout << "\nChoose event to update (1-" << temp.size() << "): ";
+	// Let user select event to update
 	int choice;
+	cout << "\nChoose event to update (1-" << userEvents.size() << "): ";
 	cin >> choice;
 	cin.ignore();
 
-	if (choice < 1 || choice >(int)temp.size()) {
+	if (choice < 1 || choice > userEvents.size()) {
 		cout << "Invalid choice.\n";
-		events.insert(events.end(), temp.begin(), temp.end());
 		return;
 	}
 
-	Event& e = temp[choice - 1];
+	Event& e = userEvents[choice - 1];
 
 	bool editing = true;
 	while (editing) {
 		system("cls");
 		cout << "\n[Update Event]\n";
 		cout << "1. Funeral Date (" << e.date.year << "-"
-			<< e.date.month << "-"
-			<< e.date.date << ")\n";
+			<< e.date.month << "-" << e.date.date << ")\n";
 		cout << "2. Guests (" << e.totalGuest << ")\n";
 		cout << "3. Package (" << e.package.name << ")\n";
 		cout << "4. Add-On (" << e.addOn.name << ")\n";
@@ -687,45 +793,45 @@ void updateEvent() {
 		cin.ignore();
 
 		switch (opt) {
-		case 1:
-			inputFuneralDate(e);
-			break;
+		case 1: inputFuneralDate(e); break;
 		case 2:
 			cout << "Enter new total guests: ";
 			cin >> e.totalGuest;
 			checkInt(e.totalGuest);
 			cin.ignore();
 			break;
-		case 3:
-			selectPackage(e);
-			break;
-		case 4:
-			addOn(e);
-			break;
-		case 0:
-			editing = false;
-			break;
-		default:
-			cout << "Invalid choice.\n";
+		case 3: selectPackage(e); break;
+		case 4: addOn(e); break;
+		case 0: editing = false; break;
+		default: cout << "Invalid choice.\n"; break;
 		}
 
-		// Recalculate price after every change
+		// Recalculate total price
 		e.totalPrice = e.package.price + e.addOn.price + (e.totalGuest * 30);
 	}
 
-	// Put all events back and save
-	events.insert(events.end(), temp.begin(), temp.end());
+	// Update the original events vector
+	// Remove old unpaid events for this IC first
+	for (int i = 0; i < events.size(); i++) {
+		if (events[i].customer.customerIC == IC && !events[i].paid) {
+			events.erase(events.begin() + i);
+			i--; // adjust index
+		}
+	}
+
+	// Insert the updated events back
+	events.insert(events.end(), userEvents.begin(), userEvents.end());
 	saveEvents();
 	cout << "Event updated successfully!\n";
 }
 
-void delEvent() {
+
+void delEvent(Account &acc) {
 	system("cls");
 	cout << "\n[Delete Event]\n";
 	loadEvents();
-	string IC = inputIC();
 
-	vector<Event> temp = getUnpaidEventsByIC(IC);
+	vector<Event> temp = getUnpaidEventsByIC(acc.customer.customerIC);
 
 	if (temp.empty()) {
 		cout << "No unpaid events found with this IC.\n";
@@ -761,7 +867,7 @@ void delEvent() {
 	cout << "Event deleted successfully.\n";
 }
 
-void eventRegistration() {
+void eventRegistration(Account &acc) {
 	vector<string> menu = { "Create Event", "Read Event", "Update Event","Delete Event", "Exit" };
 	int selection = 0;
 	bool run = true;
@@ -772,16 +878,16 @@ void eventRegistration() {
 		if (run) {
 			switch (selection) {
 			case 1:
-				eventInput();
+				eventInput(acc);
 				break;
 			case 2:
-				readEvent();
+				readEvent(acc);
 				break;
 			case 3:
 				updateEvent();
 				break;
 			case 4:
-				delEvent();
+				delEvent(acc);
 				break;
 			case 5:
 				cout << "Exiting...";
@@ -1110,7 +1216,7 @@ void deleteActivity(const string& filename, const Event& event) {
 }
 
 
-int main() {
+void afterLogin(Account &acc) {
 
 	int choice = 0;
 	loadEvents(); // Load from file when program starts
@@ -1126,7 +1232,7 @@ int main() {
 		cin >> choice;
 
 		switch (choice) {
-		case 1: eventRegistration(); break;
+		case 1: eventRegistration(acc); break;
 		case 2:
 			if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
 			else eventPayment();
@@ -1152,5 +1258,10 @@ int main() {
 
 	} while (choice != 4);
 
+	return;
+}
+
+int main() {
+	accountManagement();
 	return 0;
 }

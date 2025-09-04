@@ -85,15 +85,6 @@ void viewActivity(const string& filename, const Event& event, const Account& acc
 void deleteActivity(const string& filename, const Event& event, const Account& acc);
 void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
 
-//Validation
-void checkInt(int& i);
-string inputIC();
-string inputHp();
-bool isDeathDateValid(int y, unsigned m, unsigned d);
-void inputDeathDate(Event& e);
-vector<sys_days> generateFuneralDates();
-void inputFuneralDate(Event& e);
-
 // ==== Validation =====
 void checkInt(int& i) {
 	while (true) {
@@ -501,7 +492,7 @@ void registerAcc() {
 			stringstream ss(line);
 			string tempIc, tempName, tempPass, tempHp;
 			getline(ss, tempIc, ',');
-			getline(ss,tempName, ',');
+			getline(ss, tempName, ',');
 			getline(ss, tempPass, ',');
 			getline(ss, tempHp, ',');
 			if (tempIc == ic) {
@@ -580,17 +571,18 @@ void accountManagement(vector<Event>& events) {
 		loopMenu(menu, &selection, "Account Management", true);
 
 		switch (selection) {
-		case 0:
-			cout << "Exiting...\n";
-			return;
 		case 1:
 			registerAcc();
 			break;
 		case 2:
 			loginAcc(events);
 			break;
+		case 3:
+			cout << "Exiting...\n";
+			run = false;
+			break;
 		default:
-			cout << "Invalid input: Please enter integer between 1-2.\n";
+			cout << "Invalid input: Please enter integer between 1 - 3.\n";
 			break;
 		}
 
@@ -714,7 +706,7 @@ void eventInput(Account& acc, vector<Event>& events) {
 	e.paid = false;
 
 	events.push_back(e);
-	saveEvents(events); 
+	saveEvents(events);
 	cout << "\nEvent successfully registered!\n";
 }
 
@@ -821,7 +813,8 @@ void updateEvent(vector<Event>& events) {
 		e.totalPrice = e.package.price + e.addOn.price + (e.totalGuest * 30);
 	}
 
-	//Update events vector: remove old unpaid events for this IC
+	// Update the original events vector
+	// Remove old unpaid events for this IC first
 	for (int i = 0; i < events.size(); i++) {
 		if (events[i].customer.customerIC == IC && !events[i].paid) {
 			events.erase(events.begin() + i);
@@ -831,7 +824,7 @@ void updateEvent(vector<Event>& events) {
 
 	// Insert the updated events back
 	events.insert(events.end(), userEvents.begin(), userEvents.end());
-	saveEvents(events); 
+	saveEvents(events);
 	cout << "Event updated successfully!\n";
 }
 
@@ -873,7 +866,7 @@ void delEvent(Account& acc, vector<Event>& events) {
 
 	temp.erase(temp.begin() + (choice - 1));
 	events.insert(events.end(), temp.begin(), temp.end());
-	saveEvents(events);  
+	saveEvents(events);
 	cout << "Event deleted successfully.\n";
 }
 
@@ -892,13 +885,13 @@ void eventRegistration(Account& acc, vector<Event>& events) {
 				eventInput(acc, events);
 				break;
 			case 2:
-				readEvent(acc, events);  
+				readEvent(acc, events);
 				break;
 			case 3:
-				updateEvent(events);  
+				updateEvent(events);
 				break;
 			case 4:
-				delEvent(acc, events); 
+				delEvent(acc, events);
 				break;
 			case 5:
 				cout << "Exiting...";
@@ -1086,8 +1079,8 @@ void viewActivity(const string& filename, const Event& event, const Account& acc
 	cout << "=====================================\n";
 
 	vector<string> lines;
-	vector<Event> dummyEvents; 
-	loadEvents(dummyEvents, &lines, filename); 
+	vector<Event> dummyEvents;
+	loadEvents(dummyEvents, &lines, filename);
 
 	bool found = false;
 
@@ -1148,8 +1141,8 @@ void viewActivity(const string& filename, const Event& event, const Account& acc
 
 static int selectActivityIndex(const string& filename, const Event& event, vector<string>& lines) {
 	lines.clear();
-	vector<Event> dummyEvents; 
-	loadEvents(dummyEvents, &lines, filename); 
+	vector<Event> dummyEvents;
+	loadEvents(dummyEvents, &lines, filename);
 
 	vector<int> matched;
 	const string targetDate =
@@ -1245,7 +1238,7 @@ void editActivity(const string& filename, const Event& event, const Account& acc
 	cout << "Activity updated.\n";
 }
 
-void deleteActivity(const string& filename, const Event& event, const Account &acc) {
+void deleteActivity(const string& filename, const Event& event, const Account& acc) {
 	system("cls");
 	cout << "=====================================\n";
 	cout << "   " << "Delete Activity" << "   \n";
@@ -1271,11 +1264,9 @@ void deleteActivity(const string& filename, const Event& event, const Account &a
 
 void afterLogin(Account& acc, vector<Event>& events) {
 	int choice = 0;
-	loadEvents(events); 
+	loadEvents(events);
 
-	vector<string> menu = { "Register Funeral Event", "Payment for a Registered Event", "Monitor a Created Event", "Exit" };
-	vector<string> event = { "Create Event", "Read Event", "Update Event", "Delete Event", "Exit" };
-
+	vector<string> menu = { "Register Funeral Event", "Payment for an Registered Event", "Monitor a Created Event", "Exit" };
 	do {
 		system("cls");
 
@@ -1287,22 +1278,20 @@ void afterLogin(Account& acc, vector<Event>& events) {
 
 		switch (choice) {
 		case 1:
-			eventRegistration(acc, events);  
+			eventRegistration(acc, events);
 			break;
 		case 2:
 			if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
-			else eventPayment(events);  
+			else eventPayment(events);
 			break;
-
-		case 3: // Monitoring
+		case 3:
 			if (events.empty()) cout << "\n[ERROR] No events registered yet.\n";
-			else eventMonitoring(acc, events); 
+			else eventMonitoring(acc, events);
 			break;
 		case 4:
-			saveEvents(events);  
+			saveEvents(events);
 			cout << "Exiting system... Goodbye!\n";
 			break;
-
 		default:
 			cout << "Invalid choice! Please try again.\n";
 			break;
@@ -1320,6 +1309,6 @@ void afterLogin(Account& acc, vector<Event>& events) {
 
 int main() {
 	vector<Event> events;
-	accountManagement(events); 
+	accountManagement(events);
 	return 0;
 }

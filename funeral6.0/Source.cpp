@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <iomanip>
 #include <vector>
 #include <string>
@@ -78,6 +78,10 @@ void registerAcc();
 Account loginAcc();
 void accountManagement();
 void afterLogin(Account& acc, vector<Event>& events);
+bool deleteAccount(Account& acc, vector<Event>& events);
+void editAccount(Account& acc);
+void saveAccounts(const vector<Account>& accounts);
+void loadAccounts(vector<Account>& accounts);
 
 // Event Management
 void eventInput(Account& acc, vector<Event>& events);
@@ -198,17 +202,6 @@ bool isDeathDateValid(int year, int month, int day) {
 #include <sstream>
 #include <ctime>
 #include <limits>
-
-// Define your Event structure here, as it's not fully provided
-// struct Date {
-//     int year;
-//     int month;
-//     int date;
-// };
-// struct Event {
-//     Date date;
-//     // other event properties...
-// };
 
 using namespace std;
 
@@ -478,7 +471,7 @@ void vectorLoop(const vector<Event>& events, int typeOutput = 0, string title = 
 
 void selctionCheckInput(int min, int max, int& selection, const vector<string>* menu = nullptr, const string* title = nullptr) {
     do {
-        cout << "Please enter between " << min << " - " << max << " (0 for exit): ";
+        cout << "Please enter between " << min << " - " << max << ": ";
         cin >> selection;
         if (cin.fail()) {
             cin.clear();
@@ -1642,6 +1635,30 @@ void eventPayment(Account& acc, vector<Event>& events) {
     printReceipt(selectedEvent, paymentMethodName, transactionId, invoiceNumber);
 }
 
+bool isActivityDateValid(const Date& activityDate, const Date& eventDate, const Time* activityTime = nullptr) {
+    if (activityDate.year < eventDate.year ||
+        (activityDate.year == eventDate.year && activityDate.month < eventDate.month) ||
+        (activityDate.year == eventDate.year && activityDate.month == eventDate.month &&
+            activityDate.date < eventDate.date)) {
+        cout << "Activity date cannot be earlier than event date ("
+            << eventDate.date << "/" << eventDate.month << "/" << eventDate.year
+            << ").\n";
+        return false;
+    }
+    if (activityTime != nullptr &&
+        activityDate.year == eventDate.year &&
+        activityDate.month == eventDate.month &&
+        activityDate.date == eventDate.date) {
+        if (activityTime->hours < 9 ||
+            (activityTime->hours == 9 && activityTime->minute < 0)) {
+            cout << "Activity time cannot be earlier than event start time (9:00).\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void createActivity(const Event& event) {
     system("cls");
     vector<string> lines;
@@ -1682,24 +1699,52 @@ void createActivity(const Event& event) {
     getline(cin, activity.description);
     if (activity.description == "0") return;
 
-    cout << "Date (dd mm yy): ";
-    getline(cin, input);
-    if (input == "0") return;
-    stringstream dateSs(input);
-    dateSs >> activity.date.date >> activity.date.month >> activity.date.year;
-    if (dateSs.fail() || !dateSs.eof()) {
-        cout << "Invalid date format. Activity creation cancelled.\n";
-        return;
+    bool validDate = false;
+    while (!validDate) {
+        cout << "Date (dd mm yyyy): ";
+        getline(cin, input);
+        if (input == "0") return;
+
+        stringstream dateSs(input);
+        dateSs >> activity.date.date >> activity.date.month >> activity.date.year;
+
+        if (dateSs.fail() || !dateSs.eof()) {
+            cout << "Invalid date format. Please try again.\n";
+            continue;
+        }
+
+        if (!isActivityDateValid(activity.date, event.date)) {
+            continue;
+        }
+
+        validDate = true;
     }
 
-    cout << "Time (hh mm): ";
-    getline(cin, input);
-    if (input == "0") return;
-    stringstream timeSs(input);
-    timeSs >> activity.time.hours >> activity.time.minute;
-    if (timeSs.fail() || !timeSs.eof()) {
-        cout << "Invalid time format. Activity creation cancelled.\n";
-        return;
+    bool validTime = false;
+    while (!validTime) {
+        cout << "Time (hh mm): ";
+        getline(cin, input);
+        if (input == "0") return;
+
+        stringstream timeSs(input);
+        timeSs >> activity.time.hours >> activity.time.minute;
+
+        if (timeSs.fail() || !timeSs.eof()) {
+            cout << "Invalid time format. Please try again.\n";
+            continue;
+        }
+
+        if (!isActivityDateValid(activity.date, event.date, &activity.time)) {
+            continue;
+        }
+
+        if (activity.time.hours < 0 || activity.time.hours > 23 ||
+            activity.time.minute < 0 || activity.time.minute > 59) {
+            cout << "Invalid time. Hours must be 0-23, minutes must be 0-59. Please try again.\n";
+            continue;
+        }
+
+        validTime = true;
     }
 
     stringstream ss;
@@ -1713,7 +1758,6 @@ void createActivity(const Event& event) {
         << activity.description << ","
         << activity.date.date << " " << activity.date.month << " " << activity.date.year << ","
         << activity.time.hours << " " << activity.time.minute;
-
 
     lines.push_back(ss.str());
     saveEvents(lines, filename);
@@ -1875,12 +1919,59 @@ void editActivity(const string& filename, const Event& event) {
         return;
     }
 
-    auto editField = [&](size_t fieldIndex, const string& label) {
+    auto editField = [&](size_t fieldIndex, const string& label, bool isDateField = false, bool isTimeField = false) {
         cout << label << " [" << tokens[fieldIndex] << "]: ";
         string in;
         getline(cin, in);
-        if (!in.empty()) tokens[fieldIndex] = in;
-        };
+        if (!in.empty()) {
+            if (isDateField) {
+                Date newDate;
+                stringstream dateSs(in);
+                dateSs >> newDate.date >> newDate.month >> newDate.year;
+
+                if (dateSs.fail() || !dateSs.eof()) {
+                    cout << "Invalid date format. Keeping original value.\n";
+                    return;
+                }
+
+                if (!isActivityDateValid(newDate, event.date)) {
+                    cout << "Keeping original value.\n";
+                    return;
+                }
+
+                tokens[fieldIndex] = in;
+            }
+            else if (isTimeField) {
+                Time newTime;
+                stringstream timeSs(in);
+                timeSs >> newTime.hours >> newTime.minute;
+
+                if (timeSs.fail() || !timeSs.eof()) {
+                    cout << "Invalid time format. Keeping original value.\n";
+                    return;
+                }
+
+                Date activityDate;
+                stringstream dateSs(tokens[8]);
+                dateSs >> activityDate.date >> activityDate.month >> activityDate.year;
+                if (!isActivityDateValid(activityDate, event.date, &newTime)) {
+                    cout << "Keeping original value.\n";
+                    return;
+                }
+
+                if (newTime.hours < 0 || newTime.hours > 23 ||
+                    newTime.minute < 0 || newTime.minute > 59) {
+                    cout << "Invalid time. Hours must be 0-23, minutes must be 0-59. Keeping original value.\n";
+                    return;
+                }
+
+                tokens[fieldIndex] = in;
+            }
+            else {
+                tokens[fieldIndex] = in;
+            }
+        }
+    };
 
     cout << "\n=== Edit Activity Fields (press Enter to keep original) ===\n";
     editField(3, "Initiator");
@@ -1888,8 +1979,8 @@ void editActivity(const string& filename, const Event& event) {
     editField(5, "Type");
     editField(6, "Amount");
     editField(7, "Description");
-    editField(8, "Activity Date (dd mm yy)");
-    editField(9, "Activity Time (hh mm)");
+    editField(8, "Activity Date (dd mm yyyy)", true);
+    editField(9, "Activity Time (hh mm)", false, true); 
 
     stringstream os;
     for (size_t i = 0; i < tokens.size(); ++i) {
@@ -1901,6 +1992,7 @@ void editActivity(const string& filename, const Event& event) {
     overwriteFile(filename, lines);
     cout << "Activity updated.\n";
 }
+
 
 void deleteActivity(const string& filename, const Event& event) {
     system("cls");
@@ -1929,7 +2021,16 @@ void deleteActivity(const string& filename, const Event& event) {
 void afterLogin(Account& acc, vector<Event>& events) {
     int choice = 0;
 
-    vector<string> menu = { "Register Funeral Event", "Update Event", "Payment for an Registered Event", "Monitor a Created Event", "Return to Main Menu" };
+    vector<string> menu = {
+        "Register Funeral Event",
+        "Update Event",
+        "Payment for an Registered Event",
+        "Monitor a Created Event",
+        "Edit Account",      
+        "Delete Account",     
+        "Return to Main Menu"
+    };
+
     do {
         system("cls");
         loopMenu(menu, nullptr, "Funeral Event Management System");
@@ -1974,7 +2075,16 @@ void afterLogin(Account& acc, vector<Event>& events) {
                 eventMonitoring(acc, events);
             }
             break;
-        case 5:
+        case 5:  
+            editAccount(acc);
+            break;
+        case 6: 
+            if (deleteAccount(acc, events)) {
+                cout << "Account deleted successfully. Returning to main menu...\n";
+                return;
+            }
+            break;
+        case 7:
             saveEvents(events);
             cout << "Returning to main menu..." << endl;
             return;
@@ -1983,14 +2093,167 @@ void afterLogin(Account& acc, vector<Event>& events) {
             break;
         }
 
-        if (choice != 5) {
+        if (choice != 7) {
             cout << "\nPress Enter to return to the main menu...";
             cin.ignore();
             cin.get();
         }
-    } while (choice != 5);
+    } while (choice != 7);
 }
 
+void loadAccounts(vector<Account>& accounts) {
+    ifstream file("accounts.txt");
+    if (!file.is_open()) return;
+
+    string line;
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        Account acc;
+
+        getline(ss, acc.customer.customerIC, ',');
+        getline(ss, acc.customer.customerName, ',');
+        getline(ss, acc.password, ',');
+        getline(ss, acc.customer.customerHpNo, ',');
+
+        accounts.push_back(acc);
+    }
+    file.close();
+}
+
+void saveAccounts(const vector<Account>& accounts) {
+    ofstream file("accounts.txt");
+    for (const auto& acc : accounts) {
+        file << acc.customer.customerIC << ","
+            << acc.customer.customerName << ","
+            << acc.password << ","
+            << acc.customer.customerHpNo << "\n";
+    }
+    file.close();
+}
+
+void editAccount(Account& acc) {
+    system("cls");
+    cout << "\n[Edit Account]\n";
+    cout << "Enter 0 at any time to cancel editing\n";
+
+    vector<Account> accounts;
+    loadAccounts(accounts);
+
+    bool found = false;
+    for (auto& account : accounts) {
+        if (account.customer.customerIC == acc.customer.customerIC) {
+            found = true;
+            cout << "Current Account Details:\n";
+            cout << "IC: " << account.customer.customerIC << " (cannot be changed)\n";
+            cout << "Name: " << account.customer.customerName << endl;
+            cout << "Phone: " << account.customer.customerHpNo << endl;
+
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            string newName, newHp, newPass;
+
+            cout << "\nEnter new name (press Enter to keep current, 0 to cancel): ";
+            getline(cin, newName);
+            if (newName == "0") {
+                cout << "Edit cancelled.\n";
+                return;
+            }
+            if (newName.empty()) newName = account.customer.customerName;
+
+            cout << "Enter new phone number (press Enter to keep current, 0 to cancel): ";
+            getline(cin, newHp);
+            if (newHp == "0") {
+                cout << "Edit cancelled.\n";
+                return;
+            }
+            if (newHp.empty()) {
+                newHp = account.customer.customerHpNo;
+            }
+            else {
+                string tempHp = newHp;
+                tempHp.erase(remove_if(tempHp.begin(), tempHp.end(), ::isspace), tempHp.end());
+                tempHp.erase(remove(tempHp.begin(), tempHp.end(), '-'), tempHp.end());
+
+                if (tempHp.length() < 10 || tempHp.length() > 11) {
+                    cout << "Invalid phone number format. Keeping current phone number.\n";
+                    newHp = account.customer.customerHpNo;
+                }
+                else {
+                    newHp = tempHp;
+                }
+            }
+
+            cout << "Enter new password (press Enter to keep current, 0 to cancel): ";
+            getline(cin, newPass);
+            if (newPass == "0") {
+                cout << "Edit cancelled.\n";
+                return;
+            }
+            if (newPass.empty()) newPass = account.password;
+
+            account.customer.customerName = newName;
+            account.customer.customerHpNo = newHp;
+            account.password = newPass;
+
+            acc.customer.customerName = newName;
+            acc.customer.customerHpNo = newHp;
+            acc.password = newPass;
+
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Error: Account not found in database.\n";
+        return;
+    }
+    saveAccounts(accounts);
+
+    cout << "Account updated successfully!\n";
+}
+
+bool deleteAccount(Account& acc, vector<Event>& events) {
+    system("cls");
+    cout << "\n[Delete Account]\n";
+    cout << "WARNING: This action cannot be undone!\n";
+    cout << "All your events and data will be permanently deleted.\n\n";
+
+    string passwordConfirm;
+    cout << "Enter your password to confirm deletion: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, passwordConfirm);
+
+    if (passwordConfirm != acc.password) {
+        cout << "Password incorrect. Account deletion cancelled.\n";
+        return false;
+    }
+
+    vector<Account> accounts;
+    loadAccounts(accounts);
+
+    vector<Account> newAccounts;
+    for (const auto& account : accounts) {
+        if (account.customer.customerIC != acc.customer.customerIC) {
+            newAccounts.push_back(account);
+        }
+    }
+
+    saveAccounts(newAccounts);
+
+    vector<Event> newEvents;
+    for (const auto& event : events) {
+        if (event.customer.customerIC != acc.customer.customerIC) {
+            newEvents.push_back(event);
+        }
+    }
+
+    events = newEvents;
+    saveEvents(events);
+
+    cout << "Account and all associated data have been deleted successfully.\n";
+    return true;
+}
 
 void eventRegistration(Account& acc, vector<Event>& events) {
     eventInput(acc, events);

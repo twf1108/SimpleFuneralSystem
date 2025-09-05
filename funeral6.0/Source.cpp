@@ -87,7 +87,7 @@ void loadAccounts(vector<Account>& accounts);
 void eventInput(Account& acc, vector<Event>& events);
 void readEvent(Account& acc, const vector<Event>& events);
 void updateEvent(Account& acc, vector<Event>& events);
-void delEvent(Account& acc, vector<Event>& events);
+void deleteEvent(Account& acc, vector<Event>& events);
 void eventRegistration(Account& acc, vector<Event>& events);
 void selectPackage(Event& e);
 void addOn(Event& e);
@@ -170,7 +170,7 @@ bool isDeathDateValid(int year, int month, int day) {
     int currentMonth = tm.tm_mon + 1;
     int currentDay = tm.tm_mday;
 
-    if (year < 1900 || year > currentYear) {
+    if (year < 2020 || year > currentYear) {
         return false;
     }
 
@@ -196,14 +196,6 @@ bool isDeathDateValid(int year, int month, int day) {
 
     return true;
 }
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <ctime>
-#include <limits>
-
-using namespace std;
 
 void inputFuneralDate(Event& e) {
     int y, m, d;
@@ -389,9 +381,6 @@ void inputDeathDate(Event& e) {
     int y, m, d;
     string line;
 
-    // Use a single cin.ignore() to handle any previous leftover newline
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
     while (true) {
         cout << "Enter Date of Death (YYYY MM DD) or 0 0 0 to cancel: ";
         getline(cin, line);
@@ -411,7 +400,7 @@ void inputDeathDate(Event& e) {
         }
 
         if (!isDeathDateValid(y, m, d)) {
-            cout << "Invalid date! Must be 1900 - today. Try again (or 0 0 0 to cancel): ";
+            cout << "Invalid date! Must be 2020 - today. Try again (or 0 0 0 to cancel): ";
             continue;
         }
 
@@ -739,9 +728,6 @@ Account loginAcc() {
         return acc;
     }
 
-    // Explicitly clear the buffer just in case, before reading the password
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
     cout << "Enter your password: ";
     getline(cin, passwordInput);
     if (passwordInput == "0") {
@@ -966,11 +952,11 @@ void eventInput(Account& acc, vector<Event>& events) {
             return;
         }
     }
-    catch (const invalid_argument& ia) {
+    catch (const invalid_argument&) {
         cout << "Invalid input for age. Registration cancelled.\n";
         return;
     }
-    catch (const out_of_range& oor) {
+    catch (const out_of_range&) {
         cout << "Age out of range. Registration cancelled.\n";
         return;
     }
@@ -1001,11 +987,11 @@ void eventInput(Account& acc, vector<Event>& events) {
             return;
         }
     }
-    catch (const invalid_argument& ia) {
+    catch (const invalid_argument&) {
         cout << "Invalid input for total guests. Registration cancelled.\n";
         return;
     }
-    catch (const out_of_range& oor) {
+    catch (const out_of_range&) {
         cout << "Total guests out of range. Registration cancelled.\n";
         return;
     }
@@ -1047,10 +1033,69 @@ void readEvent(Account& acc, const vector<Event>& events) {
         cout << "No event found with this IC.\n";
     }
 }
+void deleteEvent(Account& acc, vector<Event>& events) {
+    system("cls");
+    cout << "\n[Delete Event]\n";
+
+    vector<int> unpaidIndices;
+    for (int i = 0; i < events.size(); i++) {
+        if (events[i].customer.customerIC == acc.customer.customerIC && !events[i].paid) {
+            unpaidIndices.push_back(i);
+        }
+    }
+
+    if (unpaidIndices.empty()) {
+        cout << "No unpaid events found with this IC.\n";
+        return;
+    }
+
+    cout << "\n[Your Unpaid Registered Events]\n";
+    for (int j = 0; j < unpaidIndices.size(); j++) {
+        Event& e = events[unpaidIndices[j]];
+        cout << j + 1 << ". "
+            << e.deceased.deceasedName
+            << " | Date: " << e.date.year << "-"
+            << e.date.month << "-"
+            << e.date.date
+            << " | Package: " << e.package.name << "\n";
+    }
+
+    int choice;
+    cout << "\nChoose event to delete (1-" << unpaidIndices.size() << ", 0 to cancel): ";
+    cin >> choice;
+
+    if (cin.fail() || choice < 0 || choice > unpaidIndices.size()) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid choice. Delete cancelled.\n";
+        return;
+    }
+
+    if (choice == 0) {
+        cout << "Delete cancelled.\n";
+        return;
+    }
+
+    int indexToDelete = unpaidIndices[choice - 1];
+
+    cout << "Are you sure you want to delete event for "
+        << events[indexToDelete].deceased.deceasedName << "? (y/n): ";
+    char confirm;
+    cin >> confirm;
+
+    if (confirm == 'y' || confirm == 'Y') {
+        events.erase(events.begin() + indexToDelete); // delete directly
+        saveEvents(events);
+        cout << "Event deleted successfully!\n";
+    }
+    else {
+        cout << "Delete cancelled.\n";
+    }
+}
 
 void updateEvent(Account& acc, vector<Event>& events) {
     system("cls");
-    string IC = inputIC();
+    string IC = acc.customer.customerIC;
     if (IC == "0") {
         cout << "Update cancelled.\n";
         return;
@@ -1431,7 +1476,7 @@ void getCardDetails(string& cardNumber, string& expiryMonth, string& expiryYear,
                 continue;
             }
         }
-        catch (const invalid_argument& e) {
+        catch (const invalid_argument&) {
             cout << "Invalid input! Please enter numbers for month and year.\n";
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -1509,7 +1554,7 @@ void eventPayment(Account& acc, vector<Event>& events) {
     for (size_t i = 0; i < unpaidEventIndices.size(); ++i) {
         const Event& e = events[unpaidEventIndices[i]];
         cout << i + 1 << ". "
-            << setfill(' ') 
+            << setfill(' ')
             << setw(40) << left << e.deceased.deceasedName
             << " - RM" << setw(8) << fixed << setprecision(2)
             << e.totalPrice << "\n";
@@ -1690,7 +1735,7 @@ void createActivity(const Event& event) {
     try {
         activity.amount = stod(input);
     }
-    catch (const invalid_argument& e) {
+    catch (const invalid_argument&) {
         cout << "Invalid input for amount. Activity creation cancelled.\n";
         return;
     }
@@ -1971,7 +2016,7 @@ void editActivity(const string& filename, const Event& event) {
                 tokens[fieldIndex] = in;
             }
         }
-    };
+        };
 
     cout << "\n=== Edit Activity Fields (press Enter to keep original) ===\n";
     editField(3, "Initiator");
@@ -1980,7 +2025,7 @@ void editActivity(const string& filename, const Event& event) {
     editField(6, "Amount");
     editField(7, "Description");
     editField(8, "Activity Date (dd mm yyyy)", true);
-    editField(9, "Activity Time (hh mm)", false, true); 
+    editField(9, "Activity Time (hh mm)", false, true);
 
     stringstream os;
     for (size_t i = 0; i < tokens.size(); ++i) {
@@ -2023,11 +2068,13 @@ void afterLogin(Account& acc, vector<Event>& events) {
 
     vector<string> menu = {
         "Register Funeral Event",
+		"Read Event",
         "Update Event",
+        "Delete Event",
         "Payment for an Registered Event",
         "Monitor a Created Event",
-        "Edit Account",      
-        "Delete Account",     
+        "Edit Account",
+        "Delete Account",
         "Return to Main Menu"
     };
 
@@ -2051,7 +2098,16 @@ void afterLogin(Account& acc, vector<Event>& events) {
         case 1:
             eventRegistration(acc, events);
             break;
-        case 2:
+        case 2: 
+            
+            if (events.empty()) {
+                cout << "\n[ERROR] No events registered yet.\n";
+            }
+            else {
+                readEvent(acc, events);
+            }
+			break;
+        case 3:
             if (events.empty()) {
                 cout << "\n[ERROR] No events registered yet.\n";
             }
@@ -2059,7 +2115,15 @@ void afterLogin(Account& acc, vector<Event>& events) {
                 updateEvent(acc, events);
             }
             break;
-        case 3:
+        case 4:
+            if (events.empty()) {
+                cout << "\n[ERROR] No events registered yet.\n";
+            }
+            else {
+                deleteEvent(acc, events);
+            }
+            break;
+        case 5:
             if (events.empty()) {
                 cout << "\n[ERROR] No events registered yet.\n";
             }
@@ -2067,7 +2131,7 @@ void afterLogin(Account& acc, vector<Event>& events) {
                 eventPayment(acc, events);
             }
             break;
-        case 4:
+        case 6:
             if (events.empty()) {
                 cout << "\n[ERROR] No events registered yet.\n";
             }
@@ -2075,16 +2139,16 @@ void afterLogin(Account& acc, vector<Event>& events) {
                 eventMonitoring(acc, events);
             }
             break;
-        case 5:  
+        case 7:
             editAccount(acc);
             break;
-        case 6: 
+        case 8:
             if (deleteAccount(acc, events)) {
                 cout << "Account deleted successfully. Returning to main menu...\n";
                 return;
             }
             break;
-        case 7:
+        case 9:
             saveEvents(events);
             cout << "Returning to main menu..." << endl;
             return;
@@ -2093,12 +2157,12 @@ void afterLogin(Account& acc, vector<Event>& events) {
             break;
         }
 
-        if (choice != 7) {
+        if (choice != 9) {
             cout << "\nPress Enter to return to the main menu...";
             cin.ignore();
             cin.get();
         }
-    } while (choice != 7);
+    } while (choice != 9);
 }
 
 void loadAccounts(vector<Account>& accounts) {

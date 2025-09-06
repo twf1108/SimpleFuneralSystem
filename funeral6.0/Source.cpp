@@ -140,7 +140,7 @@ void checkInt(int& i) {
         if (cin.fail()) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input! Please enter an integer: ";
+            cout << "Invalid input! Please enter an integer (or 0 to exit): ";
             cin >> i;
         }
         else {
@@ -203,8 +203,6 @@ bool isDeathDateValid(int year, int month, int day) {
 void inputFuneralDate(Event& e) {
     int y, m, d;
     string line;
-
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     time_t now = time(0);
     tm currentTime; 
@@ -370,8 +368,6 @@ void inputDeathDate(Event& e) {
     int y, m, d;
     string line;
 
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
     while (true) {
         cout << "Enter Date of Death (YYYY MM DD) or 0 0 0 to cancel: ";
         getline(cin, line);
@@ -400,6 +396,16 @@ void inputDeathDate(Event& e) {
         e.deceased.deadDay.date = d;
         break;
     }
+}
+
+void printPrices(Event &e) {
+    cout << "\nPrice Breakdown:\n";
+    cout << "================\n";
+    cout << "Package Price: RM" << fixed << setprecision(2) << e.package.price << "\n";
+    cout << "Add-on Price:  RM" << fixed << setprecision(2) << e.addOn.price << "\n";
+    cout << "Base Price:    RM" << fixed << setprecision(2) << e.basePrice
+        << " (" << e.totalGuest << " guests x RM30)\n";
+    cout << "Total Price:   RM" << fixed << setprecision(2) << e.totalPrice << "\n";
 }
 
 // ==== Loop ====
@@ -719,8 +725,6 @@ Account loginAcc() {
         return acc;
     }
 
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
     cout << "Enter your password: ";
     getline(cin, passwordInput);
     if (passwordInput == "0") {
@@ -877,31 +881,6 @@ void selectPackage(Event& e) {
     } while (choice < 1 || choice > static_cast<int>(packages.size()));
 
     e.package = packages[choice - 1];
-
-    cin.ignore();
-    string addOnChoice;
-    cout << "Do you want to add an add-on service? (yes/no): ";
-    getline(cin, addOnChoice);
-
-    transform(addOnChoice.begin(), addOnChoice.end(), addOnChoice.begin(), ::tolower);
-
-    if (addOnChoice == "yes" || addOnChoice == "y") {
-        addOn(e);
-    }
-    else {
-        e.addOn = { "No Add-on", 0.0 };
-    }
-
-    e.basePrice = e.totalGuest * 30.0;
-    e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
-
-    cout << "\nPrice Breakdown:\n";
-    cout << "================\n";
-    cout << "Package Price: RM" << fixed << setprecision(2) << e.package.price << "\n";
-    cout << "Add-on Price:  RM" << fixed << setprecision(2) << e.addOn.price << "\n";
-    cout << "Base Price:    RM" << fixed << setprecision(2) << e.basePrice
-        << " (" << e.totalGuest << " guests x RM30)\n";
-    cout << "Total Price:   RM" << fixed << setprecision(2) << e.totalPrice << "\n";
 }
 
 void eventInput(Account& acc, vector<Event>& events) {
@@ -919,7 +898,6 @@ void eventInput(Account& acc, vector<Event>& events) {
     cout << "Enter Deceased's Name(RIP): ";
     getline(cin, e.deceased.deceasedName);
 
-    // Check if the input is "0" to cancel
     if (e.deceased.deceasedName == "0") {
         return;
     }
@@ -987,6 +965,25 @@ void eventInput(Account& acc, vector<Event>& events) {
     }
 
     selectPackage(e);
+
+    cin.ignore();
+    string addOnChoice;
+    cout << "Do you want to add an add-on service? (yes/no): ";
+    getline(cin, addOnChoice);
+
+    transform(addOnChoice.begin(), addOnChoice.end(), addOnChoice.begin(), ::tolower);
+
+    if (addOnChoice == "yes" || addOnChoice == "y") {
+        addOn(e);
+    }
+    else {
+        e.addOn = { "No Add-on", 0.0 };
+    }
+
+    e.basePrice = e.totalGuest * 30.0;
+    e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
+
+    printPrices(e);
 
     e.paid = false;
 
@@ -1172,16 +1169,17 @@ void updateEvent(Account& acc, vector<Event>& events) {
             checkInt(e.totalGuest);
             e.basePrice = e.totalGuest * 30.0;
             e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
-            cout << "Updated! New base price: RM" << e.basePrice
-                << ", New total: RM" << e.totalPrice << "\n";
+			printPrices(e);
             break;
         case 3:
             selectPackage(e);
+            e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
+            printPrices(e);
             break;
         case 4:
             addOn(e);
             e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
-            cout << "Add-on updated! New total price: RM" << e.totalPrice << "\n";
+			printPrices(e);
             break;
         case 0:
             editing = false;
@@ -1779,7 +1777,7 @@ void createActivity(const Event& event) {
         try {
             activity.donate = stod(input);
         }
-        catch (const invalid_argument& e) {
+        catch (const invalid_argument&) {
             cout << "Invalid input for amount. Activity creation cancelled.\n";
             return;
         }
@@ -2164,7 +2162,7 @@ void eventSummaryReport(Account& acc, vector<Event>& events) {
                         eventDonation += stod(tokens[10]);
                         donationEncrypted = (tokens[11] == "1");
                     }
-                    catch (const invalid_argument& e) {
+                    catch (const invalid_argument&) {
                         // Skip invalid donation values
                     }
                 }

@@ -93,7 +93,6 @@ void eventInput(Account& acc, vector<Event>& events);
 void readEvent(Account& acc, const vector<Event>& events);
 void updateEvent(Account& acc, vector<Event>& events);
 void deleteEvent(Account& acc, vector<Event>& events);
-void eventRegistration(Account& acc, vector<Event>& events);
 void selectPackage(Event& e);
 void addOn(Event& e);
 
@@ -205,13 +204,11 @@ void inputFuneralDate(Event& e) {
     int y, m, d;
     string line;
 
-    // Clear the input buffer once before the loop
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    // Get current date for comparison
     time_t now = time(0);
-    tm currentTime; // Declare a tm struct to store the time
-    localtime_s(&currentTime, &now); // Use the secure version
+    tm currentTime; 
+    localtime_s(&currentTime, &now);
 
     int currentYear = currentTime.tm_year + 1900;
     int currentMonth = currentTime.tm_mon + 1;
@@ -222,13 +219,11 @@ void inputFuneralDate(Event& e) {
         getline(cin, line);
         stringstream ss(line);
 
-        // Try to extract three integers
         if (!(ss >> y >> m >> d)) {
             cout << "Invalid input format! Please enter numbers only.\n";
             continue;
         }
 
-        // Check for cancellation
         if (y == 0 && m == 0 && d == 0) {
             e.date.year = 0;
             e.date.month = 0;
@@ -236,35 +231,29 @@ void inputFuneralDate(Event& e) {
             return;
         }
 
-        // Check if there are any remaining non-whitespace characters
         string remaining;
         if (ss >> remaining) {
             cout << "Invalid input format! Please enter numbers only.\n";
             continue;
         }
 
-        // Date validation logic
-        // Check if year is reasonable (not too far in past/future)
         if (y < 1900 || y > 2100) {
             cout << "Invalid year! Please enter a year between 1900 and 2100.\n";
             continue;
         }
 
-        // Check if month is valid
         if (m < 1 || m > 12) {
             cout << "Invalid month! Please enter a month between 1 and 12.\n";
             continue;
         }
 
-        // Days in each month (index 0 = January)
         int daysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         // Check for leap year
         bool isLeapYear = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
         if (isLeapYear && m == 2) {
-            daysInMonth[1] = 29; // February has 29 days in leap year
+            daysInMonth[1] = 29; 
         }
 
-        // Check if day is valid for the given month
         if (d < 1 || d > daysInMonth[m - 1]) {
             cout << "Invalid day! ";
             if (m == 2 && isLeapYear) {
@@ -276,7 +265,6 @@ void inputFuneralDate(Event& e) {
             continue;
         }
 
-        // Check if the date is strictly in the future (after today)
         bool isFutureDate = false;
         if (y > currentYear) {
             isFutureDate = true;
@@ -286,7 +274,7 @@ void inputFuneralDate(Event& e) {
                 isFutureDate = true;
             }
             else if (m == currentMonth) {
-                if (d > currentDay) {  // Changed from >= to > to disallow today
+                if (d > currentDay) {  
                     isFutureDate = true;
                 }
             }
@@ -297,37 +285,33 @@ void inputFuneralDate(Event& e) {
             continue;
         }
 
-        // All validations passed - store the date
         e.date.year = y;
         e.date.month = m;
         e.date.date = d;
         cout << "Funeral date set to: " << d << "/" << m << "/" << y << endl;
-        break; // Exit the loop on valid input
+        break; 
     }
 
 }
 string inputIC() {
     string ic;
-    cin.ignore(); // Clear any leftover newline characters from previous input
+    cin.ignore();
 
     while (true) {
         cout << "Enter IC (e.g., 990101-01-1234) or 0 to cancel: ";
         getline(cin, ic);
 
-        // Check if the user wants to cancel
         if (ic == "0") {
             return "0";
         }
 
-        // Remove hyphens and spaces for validation
         string tempIC = ic;
         tempIC.erase(remove(tempIC.begin(), tempIC.end(), '-'), tempIC.end());
         tempIC.erase(remove_if(tempIC.begin(), tempIC.end(), ::isspace), tempIC.end());
 
-        // Validate the cleaned IC string
         if (tempIC.length() != 12) {
             cout << "Invalid IC. Please enter exactly 12 digits.\n";
-            continue; // Continue the loop to ask for input again
+            continue;
         }
 
         bool allDigits = true;
@@ -339,7 +323,7 @@ string inputIC() {
         }
 
         if (allDigits) {
-            return tempIC; // Return the valid, cleaned IC
+            return tempIC; 
         }
         else {
             cout << "Invalid IC. Please enter only digits.\n";
@@ -386,7 +370,6 @@ void inputDeathDate(Event& e) {
     int y, m, d;
     string line;
 
-    // Use a single cin.ignore() to handle any previous leftover newline
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     while (true) {
@@ -736,7 +719,6 @@ Account loginAcc() {
         return acc;
     }
 
-    // Explicitly clear the buffer just in case, before reading the password
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     cout << "Enter your password: ";
@@ -763,8 +745,6 @@ Account loginAcc() {
         getline(ss, pass, ',');
         getline(ss, hp, ',');
 
-        // Trim leading and trailing spaces from the password read from the file.
-        // This is a safety measure to handle any extra spaces.
         pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
         pass.erase(0, pass.find_first_not_of(" \n\r\t"));
 
@@ -943,10 +923,9 @@ void eventInput(Account& acc, vector<Event>& events) {
     if (e.deceased.deceasedName == "0") {
         return;
     }
-    // Check if the input is empty and then exit the function
     else if (e.deceased.deceasedName.empty()) {
         cout << "Please enter a name bro may him Rest In Peace" << endl;
-        return; // <-- This is the crucial fix
+        return;
     }
 
     cout << "Enter Deceased's Age: ";
@@ -1095,7 +1074,7 @@ void deleteEvent(Account& acc, vector<Event>& events) {
     cin >> confirm;
 
     if (confirm == 'y' || confirm == 'Y') {
-        events.erase(events.begin() + indexToDelete); // delete directly
+        events.erase(events.begin() + indexToDelete); 
         saveEvents(events);
         cout << "Event deleted successfully!\n";
     }
@@ -1312,9 +1291,9 @@ void eventMonitoring(Account& acc, vector<Event>& events) {
             case 5:
                 activityMenu = false;
                 break;
-            case 0: // Check for 0 as a way to exit from the inner loop
+            case 0:
                 activityMenu = false;
-                run = false; // Also exit the outer loop
+                run = false; 
                 break;
             default:
                 cout << "Invalid selection.\n";
@@ -1547,8 +1526,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
 
     loadEvents(events, nullptr, "assignment.txt");
 
-    // --- CHANGE 1: Find indices instead of making a copy ---
-    // This is more efficient and ensures we modify the original event.
     vector<int> unpaidEventIndices;
     for (int i = 0; i < events.size(); ++i) {
         if (events[i].customer.customerIC == acc.customer.customerIC && !events[i].paid) {
@@ -1589,7 +1566,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         return;
     }
 
-    // Get a direct reference to the event in the original vector
     Event& selectedEvent = events[unpaidEventIndices[choice - 1]];
 
     cout << "\nPayment Details:\n";
@@ -1601,8 +1577,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
     string paymentMethod = selectPaymentMethod();
     string cardNumber, expiryMonth, expiryYear, cvv, cardHolderName;
 
-    // --- CHANGE 2: Use a better random number generator for transaction IDs ---
-    // Replaced outdated rand() with the modern <random> library for consistency.
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(100000, 999999);
@@ -1613,7 +1587,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         getCardDetails(cardNumber, expiryMonth, expiryYear, cvv, cardHolderName);
         cout << "\nProcessing " << (paymentMethod == "CC" ? "Credit Card" : "Debit Card") << " payment...\n";
 
-        // --- CHANGE 3: Added safety checks to prevent substr crash ---
         string maskedCard = "****-****-****-XXXX"; // Default value
         if (cardNumber.length() >= 4) {
             maskedCard = "****-****-****-" + cardNumber.substr(cardNumber.length() - 4);
@@ -1629,7 +1602,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         cout << "Cardholder: " << cardHolderName << "\n";
     }
     else if (paymentMethod == "OB") {
-        // This section was already safe, no changes needed
         cout << "Available Banks:\n";
         cout << "1. Maybank\n2. CIMB Bank\n3. Public Bank\n4. RHB Bank\n5. Hong Leong Bank\n";
         int bankChoice;
@@ -1645,7 +1617,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         cout << "Redirecting to " << banks[bankChoice - 1] << " online banking...\n";
     }
     else if (paymentMethod == "EW") {
-        // This section was also already safe, no changes needed
         cout << "Available E-Wallets:\n";
         cout << "1. Touch 'n Go eWallet\n2. GrabPay\n3. Boost\n4. ShopeePay\n";
         int ewalletChoice;
@@ -1674,8 +1645,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
     }
     cout << "\n\nPayment processed successfully!\n";
 
-    // --- CHANGE 4: Simplified the update logic ---
-    // Since we now have a direct reference, we can update the status easily.
     selectedEvent.paid = true;
 
     saveEvents(events);
@@ -2237,7 +2206,6 @@ void eventSummaryReport(Account& acc, vector<Event>& events) {
 void afterLogin(Account& acc, vector<Event>& events) {
     int choice = 0;
 
-    // Updated menu with the new option
     vector<string> menu = {
         "Register Funeral Event",
         "Read Event",
@@ -2269,7 +2237,7 @@ void afterLogin(Account& acc, vector<Event>& events) {
 
         switch (choice) {
         case 1:
-            eventRegistration(acc, events);
+            eventInput(acc, events);
             break;
         case 2:
             if (events.empty()) {
@@ -2325,11 +2293,11 @@ void afterLogin(Account& acc, vector<Event>& events) {
                 cout << "\n[ERROR] No events registered yet.\n";
             }
             else {
-                eventSummaryReport(acc, events); // Use existing function
+                eventSummaryReport(acc, events); 
             }
             break;
-        case 10: // New case for "Return to Main Menu"
-            saveEvents(events); // Save events before returning
+        case 10: 
+            saveEvents(events); 
             cout << "Returning to main menu..." << endl;
             return;
         default:
@@ -2500,12 +2468,6 @@ bool deleteAccount(Account& acc, vector<Event>& events) {
     cout << "Account and all associated data have been deleted successfully.\n";
     return true;
 }
-
-void eventRegistration(Account& acc, vector<Event>& events) {
-    eventInput(acc, events);
-}
-
-
 
 int main() {
     accountManagement();

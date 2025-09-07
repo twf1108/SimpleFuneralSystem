@@ -1,13 +1,9 @@
 ﻿  Source.cpp
-C:\Users\user\source\repos\funeral6.0\Source.cpp(976,36): warning C4101: 'ia': unreferenced local variable
-C:\Users\user\source\repos\funeral6.0\Source.cpp(980,32): warning C4101: 'oor': unreferenced local variable
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1011,36): warning C4101: 'ia': unreferenced local variable
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1015,32): warning C4101: 'oor': unreferenced local variable
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1363,69): warning C4244: 'argument': conversion from '_Rep' to 'unsigned int', possible loss of data
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1363,69): warning C4244:         with
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1363,69): warning C4244:         [
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1363,69): warning C4244:             _Rep=__int64
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1363,69): warning C4244:         ]
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1441,40): warning C4101: 'e': unreferenced local variable
-C:\Users\user\source\repos\funeral6.0\Source.cpp(1676,36): warning C4101: 'e': unreferenced local variable
+C:\Users\user\source\repos\funeral6.0\Source.cpp(1413,69): warning C4244: 'argument': conversion from '_Rep' to 'unsigned int', possible loss of data
+C:\Users\user\source\repos\funeral6.0\Source.cpp(1413,69): warning C4244:         with
+C:\Users\user\source\repos\funeral6.0\Source.cpp(1413,69): warning C4244:         [
+C:\Users\user\source\repos\funeral6.0\Source.cpp(1413,69): warning C4244:             _Rep=__int64
+C:\Users\user\source\repos\funeral6.0\Source.cpp(1413,69): warning C4244:         ]
+C:\Users\user\source\repos\funeral6.0\Source.cpp(1813,40): warning C4101: 'e': unreferenced local variable
+C:\Users\user\source\repos\funeral6.0\Source.cpp(2198,52): warning C4101: 'e': unreferenced local variable
   funeral6.0.vcxproj -> C:\Users\user\source\repos\funeral6.0\x64\Debug\funeral6.0.exe

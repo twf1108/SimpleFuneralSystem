@@ -14,8 +14,10 @@
 #include <random>
 #include <stdexcept>
 
+
 using namespace std;
 using namespace std::chrono;
+
 
 struct Date {
     int date = 0, month = 0, year = 0;
@@ -31,6 +33,8 @@ struct Activity {
     string description = "";
     Date date;
     Time time;
+    double donate = 0.0;
+    bool enc = false;
 };
 
 struct Customer {
@@ -73,18 +77,22 @@ struct Event {
     bool paid = false;
 };
 
+
 // --- Function Prototypes ---
 void registerAcc();
 Account loginAcc();
 void accountManagement();
 void afterLogin(Account& acc, vector<Event>& events);
+bool deleteAccount(Account& acc, vector<Event>& events);
+void editAccount(Account& acc);
+void saveAccounts(const vector<Account>& accounts);
+void loadAccounts(vector<Account>& accounts);
 
 // Event Management
 void eventInput(Account& acc, vector<Event>& events);
 void readEvent(Account& acc, const vector<Event>& events);
 void updateEvent(Account& acc, vector<Event>& events);
-void delEvent(Account& acc, vector<Event>& events);
-void eventRegistration(Account& acc, vector<Event>& events);
+void deleteEvent(Account& acc, vector<Event>& events);
 void selectPackage(Event& e);
 void addOn(Event& e);
 
@@ -126,14 +134,13 @@ string detectCardType(const string& cardNumber);
 void getCardDetails(string& cardNumber, string& expiryMonth, string& expiryYear, string& cvv, string& cardHolderName);
 void printReceipt(const Event& event, const string& paymentMethod, const string& transactionId, const string& invoiceNumber);
 
-
 // ===== Validation =====
 void checkInt(int& i) {
     while (true) {
         if (cin.fail()) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input! Please enter an integer: ";
+            cout << "Invalid input! Please enter an integer (or 0 to exit): ";
             cin >> i;
         }
         else {
@@ -166,7 +173,7 @@ bool isDeathDateValid(int year, int month, int day) {
     int currentMonth = tm.tm_mon + 1;
     int currentDay = tm.tm_mday;
 
-    if (year < 1900 || year > currentYear) {
+    if (year < 2020 || year > currentYear) {
         return false;
     }
 
@@ -192,37 +199,14 @@ bool isDeathDateValid(int year, int month, int day) {
 
     return true;
 }
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <ctime>
-#include <limits>
-
-// Define your Event structure here, as it's not fully provided
-// struct Date {
-//     int year;
-//     int month;
-//     int date;
-// };
-// struct Event {
-//     Date date;
-//     // other event properties...
-// };
-
-using namespace std;
 
 void inputFuneralDate(Event& e) {
     int y, m, d;
     string line;
 
-    // Clear the input buffer once before the loop
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-    // Get current date for comparison
     time_t now = time(0);
-    tm currentTime; // Declare a tm struct to store the time
-    localtime_s(&currentTime, &now); // Use the secure version
+    tm currentTime; 
+    localtime_s(&currentTime, &now);
 
     int currentYear = currentTime.tm_year + 1900;
     int currentMonth = currentTime.tm_mon + 1;
@@ -233,13 +217,11 @@ void inputFuneralDate(Event& e) {
         getline(cin, line);
         stringstream ss(line);
 
-        // Try to extract three integers
         if (!(ss >> y >> m >> d)) {
             cout << "Invalid input format! Please enter numbers only.\n";
             continue;
         }
 
-        // Check for cancellation
         if (y == 0 && m == 0 && d == 0) {
             e.date.year = 0;
             e.date.month = 0;
@@ -247,35 +229,29 @@ void inputFuneralDate(Event& e) {
             return;
         }
 
-        // Check if there are any remaining non-whitespace characters
         string remaining;
         if (ss >> remaining) {
             cout << "Invalid input format! Please enter numbers only.\n";
             continue;
         }
 
-        // Date validation logic
-        // Check if year is reasonable (not too far in past/future)
         if (y < 1900 || y > 2100) {
             cout << "Invalid year! Please enter a year between 1900 and 2100.\n";
             continue;
         }
 
-        // Check if month is valid
         if (m < 1 || m > 12) {
             cout << "Invalid month! Please enter a month between 1 and 12.\n";
             continue;
         }
 
-        // Days in each month (index 0 = January)
         int daysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         // Check for leap year
         bool isLeapYear = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
         if (isLeapYear && m == 2) {
-            daysInMonth[1] = 29; // February has 29 days in leap year
+            daysInMonth[1] = 29; 
         }
 
-        // Check if day is valid for the given month
         if (d < 1 || d > daysInMonth[m - 1]) {
             cout << "Invalid day! ";
             if (m == 2 && isLeapYear) {
@@ -287,7 +263,6 @@ void inputFuneralDate(Event& e) {
             continue;
         }
 
-        // Check if the date is strictly in the future (after today)
         bool isFutureDate = false;
         if (y > currentYear) {
             isFutureDate = true;
@@ -297,7 +272,7 @@ void inputFuneralDate(Event& e) {
                 isFutureDate = true;
             }
             else if (m == currentMonth) {
-                if (d > currentDay) {  // Changed from >= to > to disallow today
+                if (d > currentDay) {  
                     isFutureDate = true;
                 }
             }
@@ -308,37 +283,33 @@ void inputFuneralDate(Event& e) {
             continue;
         }
 
-        // All validations passed - store the date
         e.date.year = y;
         e.date.month = m;
         e.date.date = d;
         cout << "Funeral date set to: " << d << "/" << m << "/" << y << endl;
-        break; // Exit the loop on valid input
+        break; 
     }
 
 }
 string inputIC() {
     string ic;
-    cin.ignore(); // Clear any leftover newline characters from previous input
+    cin.ignore();
 
     while (true) {
         cout << "Enter IC (e.g., 990101-01-1234) or 0 to cancel: ";
         getline(cin, ic);
 
-        // Check if the user wants to cancel
         if (ic == "0") {
             return "0";
         }
 
-        // Remove hyphens and spaces for validation
         string tempIC = ic;
         tempIC.erase(remove(tempIC.begin(), tempIC.end(), '-'), tempIC.end());
         tempIC.erase(remove_if(tempIC.begin(), tempIC.end(), ::isspace), tempIC.end());
 
-        // Validate the cleaned IC string
         if (tempIC.length() != 12) {
             cout << "Invalid IC. Please enter exactly 12 digits.\n";
-            continue; // Continue the loop to ask for input again
+            continue;
         }
 
         bool allDigits = true;
@@ -350,7 +321,7 @@ string inputIC() {
         }
 
         if (allDigits) {
-            return tempIC; // Return the valid, cleaned IC
+            return tempIC; 
         }
         else {
             cout << "Invalid IC. Please enter only digits.\n";
@@ -358,7 +329,6 @@ string inputIC() {
     }
 }
 string inputHp() {
-    bool valid;
     string hpNo;
 
     while (true) {
@@ -373,8 +343,10 @@ string inputHp() {
         tempHp.erase(remove_if(tempHp.begin(), tempHp.end(), ::isspace), tempHp.end());
         tempHp.erase(remove(tempHp.begin(), tempHp.end(), '-'), tempHp.end());
 
-        valid = true;
-        if (tempHp.length() < 10 || tempHp.length() > 11) valid = false;
+        bool valid = true;
+        if (tempHp.length() < 10 || tempHp.length() > 11) {
+            valid = false;
+        }
         else {
             for (size_t i = 0; i < tempHp.length(); i++) {
                 if (!isdigit(tempHp[i])) {
@@ -396,9 +368,6 @@ void inputDeathDate(Event& e) {
     int y, m, d;
     string line;
 
-    // Use a single cin.ignore() to handle any previous leftover newline
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
     while (true) {
         cout << "Enter Date of Death (YYYY MM DD) or 0 0 0 to cancel: ";
         getline(cin, line);
@@ -418,7 +387,7 @@ void inputDeathDate(Event& e) {
         }
 
         if (!isDeathDateValid(y, m, d)) {
-            cout << "Invalid date! Must be 1900 - today. Try again (or 0 0 0 to cancel): ";
+            cout << "Invalid date! Must be 2020 - today. Try again (or 0 0 0 to cancel): ";
             continue;
         }
 
@@ -427,6 +396,16 @@ void inputDeathDate(Event& e) {
         e.deceased.deadDay.date = d;
         break;
     }
+}
+
+void printPrices(Event &e) {
+    cout << "\nPrice Breakdown:\n";
+    cout << "================\n";
+    cout << "Package Price: RM" << fixed << setprecision(2) << e.package.price << "\n";
+    cout << "Add-on Price:  RM" << fixed << setprecision(2) << e.addOn.price << "\n";
+    cout << "Base Price:    RM" << fixed << setprecision(2) << e.basePrice
+        << " (" << e.totalGuest << " guests x RM30)\n";
+    cout << "Total Price:   RM" << fixed << setprecision(2) << e.totalPrice << "\n";
 }
 
 // ==== Loop ====
@@ -478,7 +457,7 @@ void vectorLoop(const vector<Event>& events, int typeOutput = 0, string title = 
 
 void selctionCheckInput(int min, int max, int& selection, const vector<string>* menu = nullptr, const string* title = nullptr) {
     do {
-        cout << "Please enter between " << min << " - " << max << " (0 for exit): ";
+        cout << "Please enter between " << min << " - " << max << ": ";
         cin >> selection;
         if (cin.fail()) {
             cin.clear();
@@ -746,9 +725,6 @@ Account loginAcc() {
         return acc;
     }
 
-    // Explicitly clear the buffer just in case, before reading the password
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
     cout << "Enter your password: ";
     getline(cin, passwordInput);
     if (passwordInput == "0") {
@@ -773,8 +749,6 @@ Account loginAcc() {
         getline(ss, pass, ',');
         getline(ss, hp, ',');
 
-        // Trim leading and trailing spaces from the password read from the file.
-        // This is a safety measure to handle any extra spaces.
         pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
         pass.erase(0, pass.find_first_not_of(" \n\r\t"));
 
@@ -907,31 +881,6 @@ void selectPackage(Event& e) {
     } while (choice < 1 || choice > static_cast<int>(packages.size()));
 
     e.package = packages[choice - 1];
-
-    cin.ignore();
-    string addOnChoice;
-    cout << "Do you want to add an add-on service? (yes/no): ";
-    getline(cin, addOnChoice);
-
-    transform(addOnChoice.begin(), addOnChoice.end(), addOnChoice.begin(), ::tolower);
-
-    if (addOnChoice == "yes" || addOnChoice == "y") {
-        addOn(e);
-    }
-    else {
-        e.addOn = { "No Add-on", 0.0 };
-    }
-
-    e.basePrice = e.totalGuest * 30.0;
-    e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
-
-    cout << "\nPrice Breakdown:\n";
-    cout << "================\n";
-    cout << "Package Price: RM" << fixed << setprecision(2) << e.package.price << "\n";
-    cout << "Add-on Price:  RM" << fixed << setprecision(2) << e.addOn.price << "\n";
-    cout << "Base Price:    RM" << fixed << setprecision(2) << e.basePrice
-        << " (" << e.totalGuest << " guests x RM30)\n";
-    cout << "Total Price:   RM" << fixed << setprecision(2) << e.totalPrice << "\n";
 }
 
 void eventInput(Account& acc, vector<Event>& events) {
@@ -949,14 +898,12 @@ void eventInput(Account& acc, vector<Event>& events) {
     cout << "Enter Deceased's Name(RIP): ";
     getline(cin, e.deceased.deceasedName);
 
-    // Check if the input is "0" to cancel
     if (e.deceased.deceasedName == "0") {
         return;
     }
-    // Check if the input is empty and then exit the function
     else if (e.deceased.deceasedName.empty()) {
         cout << "Please enter a name bro may him Rest In Peace" << endl;
-        return; // <-- This is the crucial fix
+        return;
     }
 
     cout << "Enter Deceased's Age: ";
@@ -973,11 +920,11 @@ void eventInput(Account& acc, vector<Event>& events) {
             return;
         }
     }
-    catch (const invalid_argument& ia) {
+    catch (const invalid_argument&) {
         cout << "Invalid input for age. Registration cancelled.\n";
         return;
     }
-    catch (const out_of_range& oor) {
+    catch (const out_of_range&) {
         cout << "Age out of range. Registration cancelled.\n";
         return;
     }
@@ -1008,16 +955,35 @@ void eventInput(Account& acc, vector<Event>& events) {
             return;
         }
     }
-    catch (const invalid_argument& ia) {
+    catch (const invalid_argument&) {
         cout << "Invalid input for total guests. Registration cancelled.\n";
         return;
     }
-    catch (const out_of_range& oor) {
+    catch (const out_of_range&) {
         cout << "Total guests out of range. Registration cancelled.\n";
         return;
     }
 
     selectPackage(e);
+
+    cin.ignore();
+    string addOnChoice;
+    cout << "Do you want to add an add-on service? (yes/no): ";
+    getline(cin, addOnChoice);
+
+    transform(addOnChoice.begin(), addOnChoice.end(), addOnChoice.begin(), ::tolower);
+
+    if (addOnChoice == "yes" || addOnChoice == "y") {
+        addOn(e);
+    }
+    else {
+        e.addOn = { "No Add-on", 0.0 };
+    }
+
+    e.basePrice = e.totalGuest * 30.0;
+    e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
+
+    printPrices(e);
 
     e.paid = false;
 
@@ -1054,10 +1020,69 @@ void readEvent(Account& acc, const vector<Event>& events) {
         cout << "No event found with this IC.\n";
     }
 }
+void deleteEvent(Account& acc, vector<Event>& events) {
+    system("cls");
+    cout << "\n[Delete Event]\n";
+
+    vector<int> unpaidIndices;
+    for (int i = 0; i < events.size(); i++) {
+        if (events[i].customer.customerIC == acc.customer.customerIC && !events[i].paid) {
+            unpaidIndices.push_back(i);
+        }
+    }
+
+    if (unpaidIndices.empty()) {
+        cout << "No unpaid events found with this IC.\n";
+        return;
+    }
+
+    cout << "\n[Your Unpaid Registered Events]\n";
+    for (int j = 0; j < unpaidIndices.size(); j++) {
+        Event& e = events[unpaidIndices[j]];
+        cout << j + 1 << ". "
+            << e.deceased.deceasedName
+            << " | Date: " << e.date.year << "-"
+            << e.date.month << "-"
+            << e.date.date
+            << " | Package: " << e.package.name << "\n";
+    }
+
+    int choice;
+    cout << "\nChoose event to delete (1-" << unpaidIndices.size() << ", 0 to cancel): ";
+    cin >> choice;
+
+    if (cin.fail() || choice < 0 || choice > unpaidIndices.size()) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid choice. Delete cancelled.\n";
+        return;
+    }
+
+    if (choice == 0) {
+        cout << "Delete cancelled.\n";
+        return;
+    }
+
+    int indexToDelete = unpaidIndices[choice - 1];
+
+    cout << "Are you sure you want to delete event for "
+        << events[indexToDelete].deceased.deceasedName << "? (y/n): ";
+    char confirm;
+    cin >> confirm;
+
+    if (confirm == 'y' || confirm == 'Y') {
+        events.erase(events.begin() + indexToDelete); 
+        saveEvents(events);
+        cout << "Event deleted successfully!\n";
+    }
+    else {
+        cout << "Delete cancelled.\n";
+    }
+}
 
 void updateEvent(Account& acc, vector<Event>& events) {
     system("cls");
-    string IC = inputIC();
+    string IC = acc.customer.customerIC;
     if (IC == "0") {
         cout << "Update cancelled.\n";
         return;
@@ -1144,16 +1169,17 @@ void updateEvent(Account& acc, vector<Event>& events) {
             checkInt(e.totalGuest);
             e.basePrice = e.totalGuest * 30.0;
             e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
-            cout << "Updated! New base price: RM" << e.basePrice
-                << ", New total: RM" << e.totalPrice << "\n";
+			printPrices(e);
             break;
         case 3:
             selectPackage(e);
+            e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
+            printPrices(e);
             break;
         case 4:
             addOn(e);
             e.totalPrice = e.package.price + e.addOn.price + e.basePrice;
-            cout << "Add-on updated! New total price: RM" << e.totalPrice << "\n";
+			printPrices(e);
             break;
         case 0:
             editing = false;
@@ -1250,6 +1276,7 @@ void eventMonitoring(Account& acc, vector<Event>& events) {
             case 1:
                 createActivity(selectedEvent);
                 break;
+
             case 2:
                 viewActivity("activity.txt", selectedEvent);
                 break;
@@ -1262,9 +1289,9 @@ void eventMonitoring(Account& acc, vector<Event>& events) {
             case 5:
                 activityMenu = false;
                 break;
-            case 0: // Check for 0 as a way to exit from the inner loop
+            case 0:
                 activityMenu = false;
-                run = false; // Also exit the outer loop
+                run = false; 
                 break;
             default:
                 cout << "Invalid selection.\n";
@@ -1438,7 +1465,7 @@ void getCardDetails(string& cardNumber, string& expiryMonth, string& expiryYear,
                 continue;
             }
         }
-        catch (const invalid_argument& e) {
+        catch (const invalid_argument&) {
             cout << "Invalid input! Please enter numbers for month and year.\n";
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -1497,8 +1524,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
 
     loadEvents(events, nullptr, "assignment.txt");
 
-    // --- CHANGE 1: Find indices instead of making a copy ---
-    // This is more efficient and ensures we modify the original event.
     vector<int> unpaidEventIndices;
     for (int i = 0; i < events.size(); ++i) {
         if (events[i].customer.customerIC == acc.customer.customerIC && !events[i].paid) {
@@ -1516,7 +1541,7 @@ void eventPayment(Account& acc, vector<Event>& events) {
     for (size_t i = 0; i < unpaidEventIndices.size(); ++i) {
         const Event& e = events[unpaidEventIndices[i]];
         cout << i + 1 << ". "
-            << setfill(' ') 
+            << setfill(' ')
             << setw(40) << left << e.deceased.deceasedName
             << " - RM" << setw(8) << fixed << setprecision(2)
             << e.totalPrice << "\n";
@@ -1539,7 +1564,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         return;
     }
 
-    // Get a direct reference to the event in the original vector
     Event& selectedEvent = events[unpaidEventIndices[choice - 1]];
 
     cout << "\nPayment Details:\n";
@@ -1551,8 +1575,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
     string paymentMethod = selectPaymentMethod();
     string cardNumber, expiryMonth, expiryYear, cvv, cardHolderName;
 
-    // --- CHANGE 2: Use a better random number generator for transaction IDs ---
-    // Replaced outdated rand() with the modern <random> library for consistency.
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(100000, 999999);
@@ -1563,7 +1585,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         getCardDetails(cardNumber, expiryMonth, expiryYear, cvv, cardHolderName);
         cout << "\nProcessing " << (paymentMethod == "CC" ? "Credit Card" : "Debit Card") << " payment...\n";
 
-        // --- CHANGE 3: Added safety checks to prevent substr crash ---
         string maskedCard = "****-****-****-XXXX"; // Default value
         if (cardNumber.length() >= 4) {
             maskedCard = "****-****-****-" + cardNumber.substr(cardNumber.length() - 4);
@@ -1579,7 +1600,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         cout << "Cardholder: " << cardHolderName << "\n";
     }
     else if (paymentMethod == "OB") {
-        // This section was already safe, no changes needed
         cout << "Available Banks:\n";
         cout << "1. Maybank\n2. CIMB Bank\n3. Public Bank\n4. RHB Bank\n5. Hong Leong Bank\n";
         int bankChoice;
@@ -1595,7 +1615,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
         cout << "Redirecting to " << banks[bankChoice - 1] << " online banking...\n";
     }
     else if (paymentMethod == "EW") {
-        // This section was also already safe, no changes needed
         cout << "Available E-Wallets:\n";
         cout << "1. Touch 'n Go eWallet\n2. GrabPay\n3. Boost\n4. ShopeePay\n";
         int ewalletChoice;
@@ -1624,8 +1643,6 @@ void eventPayment(Account& acc, vector<Event>& events) {
     }
     cout << "\n\nPayment processed successfully!\n";
 
-    // --- CHANGE 4: Simplified the update logic ---
-    // Since we now have a direct reference, we can update the status easily.
     selectedEvent.paid = true;
 
     saveEvents(events);
@@ -1641,7 +1658,29 @@ void eventPayment(Account& acc, vector<Event>& events) {
 
     printReceipt(selectedEvent, paymentMethodName, transactionId, invoiceNumber);
 }
+bool isActivityDateValid(const Date& activityDate, const Date& eventDate, const Time* activityTime = nullptr) {
+    if (activityDate.year < eventDate.year ||
+        (activityDate.year == eventDate.year && activityDate.month < eventDate.month) ||
+        (activityDate.year == eventDate.year && activityDate.month == eventDate.month &&
+            activityDate.date < eventDate.date)) {
+        cout << "Activity date cannot be earlier than event date ("
+            << eventDate.date << "/" << eventDate.month << "/" << eventDate.year
+            << ").\n";
+        return false;
+    }
+    if (activityTime != nullptr &&
+        activityDate.year == eventDate.year &&
+        activityDate.month == eventDate.month &&
+        activityDate.date == eventDate.date) {
+        if (activityTime->hours < 9 ||
+            (activityTime->hours == 9 && activityTime->minute < 0)) {
+            cout << "Activity time cannot be earlier than event start time (9:00).\n";
+            return false;
+        }
+    }
 
+    return true;
+}
 void createActivity(const Event& event) {
     system("cls");
     vector<string> lines;
@@ -1673,7 +1712,7 @@ void createActivity(const Event& event) {
     try {
         activity.amount = stod(input);
     }
-    catch (const invalid_argument& e) {
+    catch (const invalid_argument&) {
         cout << "Invalid input for amount. Activity creation cancelled.\n";
         return;
     }
@@ -1682,26 +1721,97 @@ void createActivity(const Event& event) {
     getline(cin, activity.description);
     if (activity.description == "0") return;
 
-    cout << "Date (dd mm yy): ";
-    getline(cin, input);
-    if (input == "0") return;
-    stringstream dateSs(input);
-    dateSs >> activity.date.date >> activity.date.month >> activity.date.year;
-    if (dateSs.fail() || !dateSs.eof()) {
-        cout << "Invalid date format. Activity creation cancelled.\n";
-        return;
+    bool validDate = false;
+    while (!validDate) {
+        cout << "Date (dd mm yyyy): ";
+        getline(cin, input);
+        if (input == "0") return;
+        stringstream dateSs(input);
+        dateSs >> activity.date.date >> activity.date.month >> activity.date.year;
+        if (dateSs.fail() || !dateSs.eof()) {
+            cout << "Invalid date format. Please try again.\n";
+            continue;
+        }
+        if (!isActivityDateValid(activity.date, event.date)) {
+            continue;
+        }
+
+        validDate = true;
     }
 
-    cout << "Time (hh mm): ";
+    bool validTime = false;
+    while (!validTime) {
+        cout << "Time (hh mm): ";
+        getline(cin, input);
+        if (input == "0") return;
+
+        stringstream timeSs(input);
+        timeSs >> activity.time.hours >> activity.time.minute;
+
+        if (timeSs.fail() || !timeSs.eof()) {
+            cout << "Invalid time format. Please try again.\n";
+            continue;
+        }
+
+        if (!isActivityDateValid(activity.date, event.date, &activity.time)) {
+            continue;
+        }
+        if (activity.time.hours < 0 || activity.time.hours > 23 ||
+            activity.time.minute < 0 || activity.time.minute > 59) {
+            cout << "Invalid time. Hours must be 0-23, minutes must be 0-59. Please try again.\n";
+            continue;
+        }
+        validTime = true;
+
+    }
+    // Donation section
+    cout << "Do u willing to provide a warm donation (i know u will)[Y/N] : ";
     getline(cin, input);
     if (input == "0") return;
-    stringstream timeSs(input);
-    timeSs >> activity.time.hours >> activity.time.minute;
-    if (timeSs.fail() || !timeSs.eof()) {
-        cout << "Invalid time format. Activity creation cancelled.\n";
-        return;
+
+    if (input == "Y" || input == "y") {
+        cout << "May the god bless you\n";
+        cout << "Enter amount : ";
+        getline(cin, input);
+        if (input == "0") return;
+        try {
+            activity.donate = stod(input);
+        }
+        catch (const invalid_argument&) {
+            cout << "Invalid input for amount. Activity creation cancelled.\n";
+            return;
+        }
+
+        // Ask about encryption after donation
+        cout << "Encrypt your donation on the system?[Y/N]";
+        getline(cin, input);
+        if (input == "0") return;
+        if (input == "Y" || input == "y") {
+            cout << "Encrypted, Thank you Good People\n";
+            activity.enc = true;
+        }
+        else {
+            cout << "Thank you!\n";
+            activity.enc = false;
+        }
+    }
+    else {
+
+        cout << "Encrypt your donation on the system?[Y/N]";
+        getline(cin, input);
+        if (input == "0") return;
+        if (input == "Y" || input == "y") {
+            cout << "Encrypted, Thank you Good People\n";
+            activity.enc = true;
+        }
+        else {
+            cout << "Thank you!\n";
+            activity.enc = false;
+        }
+
     }
 
+    // Save to file
     stringstream ss;
     ss << event.customer.customerName << ","
         << event.deceased.deceasedName << ","
@@ -1712,8 +1822,9 @@ void createActivity(const Event& event) {
         << activity.amount << ","
         << activity.description << ","
         << activity.date.date << " " << activity.date.month << " " << activity.date.year << ","
-        << activity.time.hours << " " << activity.time.minute;
-
+        << activity.time.hours << " " << activity.time.minute << ","
+        << activity.donate << ","
+        << (activity.enc ? "1" : "0");
 
     lines.push_back(ss.str());
     saveEvents(lines, filename);
@@ -1763,7 +1874,7 @@ void viewActivity(const string& filename, const Event& event) {
             cout << " Activity " << ++activityCount << " for " << customerName << " - " << deceasedName << "\n";
             cout << "=====================================\n";
 
-            if (tokens.size() >= 10) {
+            if (tokens.size() >= 12) {
                 cout << "Initiator             : " << tokens[3] << endl;
                 cout << "Invitees              : " << tokens[4] << endl;
                 cout << "Type of Activity      : " << tokens[5] << endl;
@@ -1771,6 +1882,14 @@ void viewActivity(const string& filename, const Event& event) {
                 cout << "Description           : " << tokens[7] << endl;
                 cout << "Activity Date         : " << tokens[8] << endl;
                 cout << "Activity Time         : " << tokens[9] << endl;
+                bool isEncrypted = (tokens[11] == "1");  // Convert string to boolean
+                if (!isEncrypted) {
+
+                    cout << "Donation(RM)          : " << tokens[10] << endl;
+                }
+                else {
+                    cout << "Donation(RM)          : " << "***" << endl;
+                }
             }
             else {
                 cout << "Warning: Record format is invalid: " << line << endl;
@@ -1875,11 +1994,58 @@ void editActivity(const string& filename, const Event& event) {
         return;
     }
 
-    auto editField = [&](size_t fieldIndex, const string& label) {
+    auto editField = [&](size_t fieldIndex, const string& label, bool isDateField = false, bool isTimeField = false) {
         cout << label << " [" << tokens[fieldIndex] << "]: ";
         string in;
         getline(cin, in);
-        if (!in.empty()) tokens[fieldIndex] = in;
+        if (!in.empty()) {
+            if (isDateField) {
+                Date newDate;
+                stringstream dateSs(in);
+                dateSs >> newDate.date >> newDate.month >> newDate.year;
+
+                if (dateSs.fail() || !dateSs.eof()) {
+                    cout << "Invalid date format. Keeping original value.\n";
+                    return;
+                }
+
+                if (!isActivityDateValid(newDate, event.date)) {
+                    cout << "Keeping original value.\n";
+                    return;
+                }
+
+                tokens[fieldIndex] = in;
+            }
+            else if (isTimeField) {
+                Time newTime;
+                stringstream timeSs(in);
+                timeSs >> newTime.hours >> newTime.minute;
+
+                if (timeSs.fail() || !timeSs.eof()) {
+                    cout << "Invalid time format. Keeping original value.\n";
+                    return;
+                }
+
+                Date activityDate;
+                stringstream dateSs(tokens[8]);
+                dateSs >> activityDate.date >> activityDate.month >> activityDate.year;
+                if (!isActivityDateValid(activityDate, event.date, &newTime)) {
+                    cout << "Keeping original value.\n";
+                    return;
+                }
+
+                if (newTime.hours < 0 || newTime.hours > 23 ||
+                    newTime.minute < 0 || newTime.minute > 59) {
+                    cout << "Invalid time. Hours must be 0-23, minutes must be 0-59. Keeping original value.\n";
+                    return;
+                }
+
+                tokens[fieldIndex] = in;
+            }
+            else {
+                tokens[fieldIndex] = in;
+            }
+        }
         };
 
     cout << "\n=== Edit Activity Fields (press Enter to keep original) ===\n";
@@ -1888,8 +2054,8 @@ void editActivity(const string& filename, const Event& event) {
     editField(5, "Type");
     editField(6, "Amount");
     editField(7, "Description");
-    editField(8, "Activity Date (dd mm yy)");
-    editField(9, "Activity Time (hh mm)");
+    editField(8, "Activity Date (dd mm yyyy)", true);
+    editField(9, "Activity Time (hh mm)", false, true);
 
     stringstream os;
     for (size_t i = 0; i < tokens.size(); ++i) {
@@ -1901,6 +2067,7 @@ void editActivity(const string& filename, const Event& event) {
     overwriteFile(filename, lines);
     cout << "Activity updated.\n";
 }
+
 
 void deleteActivity(const string& filename, const Event& event) {
     system("cls");
@@ -1925,11 +2092,131 @@ void deleteActivity(const string& filename, const Event& event) {
     cout << "Activity deleted.\n";
 }
 
+void eventSummaryReport(Account& acc, vector<Event>& events) {
+    system("cls");
+    cout << "=====================================\n";
+    cout << "     EVENT SUMMARY REPORT     \n";
+    cout << "=====================================\n";
+
+    // Load activities to get donation information
+    vector<string> activityLines;
+    vector<Event> dummy;
+    loadEvents(dummy, &activityLines, "activity.txt");
+
+    double totalDonations = 0.0;
+    int paidEventCount = 0;
+
+    // Display paid events with donation details
+    for (const auto& event : events) {
+        if (event.paid && event.customer.customerIC == acc.customer.customerIC) {
+            paidEventCount++;
+
+            cout << "-------------------------------------\n";
+            cout << "Event #" << paidEventCount << "\n";
+            cout << "-------------------------------------\n";
+            cout << "Customer: " << event.customer.customerName << "\n";
+            cout << "Deceased: " << event.deceased.deceasedName << "\n";
+            cout << "Event Date: " << event.date.year << "-"
+                << setw(2) << setfill('0') << event.date.month << "-"
+                << setw(2) << setfill('0') << event.date.date << "\n";
+            cout << "Package: " << event.package.name << " (RM"
+                << fixed << setprecision(2) << event.package.price << ")\n";
+            cout << "Add-On: " << event.addOn.name << " (RM"
+                << fixed << setprecision(2) << event.addOn.price << ")\n";
+            cout << "Total Guests: " << event.totalGuest << "\n";
+            cout << "Base Price: RM" << fixed << setprecision(2)
+                << event.basePrice << "\n";
+            cout << "Total Price: RM" << fixed << setprecision(2)
+                << event.totalPrice << "\n";
+
+            // Find donation information for this event
+            double eventDonation = 0.0;
+            bool donationEncrypted = false;
+
+            string targetDate = to_string(event.date.date) + " " +
+                to_string(event.date.month) + " " +
+                to_string(event.date.year);
+
+            for (const auto& line : activityLines) {
+                if (line.empty()) continue;
+
+                stringstream ss(line);
+                string token;
+                vector<string> tokens;
+
+                while (getline(ss, token, ',')) {
+                    tokens.push_back(token);
+                }
+
+                if (tokens.size() < 12) continue;
+
+                string customerName = tokens[0];
+                string deceasedName = tokens[1];
+                string eventDate = tokens[2];
+
+                if (customerName == event.customer.customerName &&
+                    deceasedName == event.deceased.deceasedName &&
+                    eventDate == targetDate) {
+
+                    try {
+                        eventDonation += stod(tokens[10]);
+                        donationEncrypted = (tokens[11] == "1");
+                    }
+                    catch (const invalid_argument&) {
+                        // Skip invalid donation values
+                    }
+                }
+            }
+
+            totalDonations += eventDonation;
+
+            if (eventDonation > 0) {
+                if (donationEncrypted) {
+                    cout << "Donation: *** (Encrypted)\n";
+                }
+                else {
+                    cout << "Donation: RM" << fixed << setprecision(2)
+                        << eventDonation << "\n";
+                }
+            }
+            else {
+                cout << "Donation: *** (Encrypted)\n";
+            }
+
+            cout << "-------------------------------------\n";
+        }
+    }
+
+    if (paidEventCount == 0) {
+        cout << "No paid events found for your account.\n";
+    }
+    else {
+        cout << "SUMMARY:\n";
+        cout << "Total Paid Events: " << paidEventCount << "\n";
+        cout << "Total Donations: RM" << fixed << setprecision(2)
+            << totalDonations << "\n";
+    }
+
+    cout << "=====================================\n";
+}
+
 
 void afterLogin(Account& acc, vector<Event>& events) {
     int choice = 0;
 
-    vector<string> menu = { "Register Funeral Event", "Update Event", "Payment for an Registered Event", "Monitor a Created Event", "Return to Main Menu" };
+    vector<string> menu = {
+        "Register Funeral Event",
+        "Read Event",
+        "Update Event",
+        "Delete Event",
+        "Payment for an Registered Event",
+        "Monitor a Created Event",
+        "Edit Account",
+        "Delete Account",
+        "View Event Summary Report",
+        "Return to Main Menu"
+    };
+
     do {
         system("cls");
         loopMenu(menu, nullptr, "Funeral Event Management System");
@@ -1948,14 +2235,14 @@ void afterLogin(Account& acc, vector<Event>& events) {
 
         switch (choice) {
         case 1:
-            eventRegistration(acc, events);
+            eventInput(acc, events);
             break;
         case 2:
             if (events.empty()) {
                 cout << "\n[ERROR] No events registered yet.\n";
             }
             else {
-                updateEvent(acc, events);
+                readEvent(acc, events);
             }
             break;
         case 3:
@@ -1963,7 +2250,7 @@ void afterLogin(Account& acc, vector<Event>& events) {
                 cout << "\n[ERROR] No events registered yet.\n";
             }
             else {
-                eventPayment(acc, events);
+                updateEvent(acc, events);
             }
             break;
         case 4:
@@ -1971,11 +2258,44 @@ void afterLogin(Account& acc, vector<Event>& events) {
                 cout << "\n[ERROR] No events registered yet.\n";
             }
             else {
-                eventMonitoring(acc, events);
+                deleteEvent(acc, events);
             }
             break;
         case 5:
-            saveEvents(events);
+            if (events.empty()) {
+                cout << "\n[ERROR] No events registered yet.\n";
+            }
+            else {
+                eventPayment(acc, events);
+            }
+            break;
+        case 6:
+            if (events.empty()) {
+                cout << "\n[ERROR] No events registered yet.\n";
+            }
+            else {
+                eventMonitoring(acc, events);
+            }
+            break;
+        case 7:
+            editAccount(acc);
+            break;
+        case 8:
+            if (deleteAccount(acc, events)) {
+                cout << "Account deleted successfully. Returning to main menu...\n";
+                return;
+            }
+            break;
+        case 9:
+            if (events.empty()) {
+                cout << "\n[ERROR] No events registered yet.\n";
+            }
+            else {
+                eventSummaryReport(acc, events); 
+            }
+            break;
+        case 10: 
+            saveEvents(events); 
             cout << "Returning to main menu..." << endl;
             return;
         default:
@@ -1983,17 +2303,168 @@ void afterLogin(Account& acc, vector<Event>& events) {
             break;
         }
 
-        if (choice != 5) {
+        if (choice != 10) {
             cout << "\nPress Enter to return to the main menu...";
             cin.ignore();
             cin.get();
         }
-    } while (choice != 5);
+    } while (choice != 10);
 }
 
 
-void eventRegistration(Account& acc, vector<Event>& events) {
-    eventInput(acc, events);
+
+void loadAccounts(vector<Account>& accounts) {
+    ifstream file("accounts.txt");
+    if (!file.is_open()) return;
+
+    string line;
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        Account acc;
+
+        getline(ss, acc.customer.customerIC, ',');
+        getline(ss, acc.customer.customerName, ',');
+        getline(ss, acc.password, ',');
+        getline(ss, acc.customer.customerHpNo, ',');
+
+        accounts.push_back(acc);
+    }
+    file.close();
+}
+
+void saveAccounts(const vector<Account>& accounts) {
+    ofstream file("accounts.txt");
+    for (const auto& acc : accounts) {
+        file << acc.customer.customerIC << ","
+            << acc.customer.customerName << ","
+            << acc.password << ","
+            << acc.customer.customerHpNo << "\n";
+    }
+    file.close();
+}
+
+void editAccount(Account& acc) {
+    system("cls");
+    cout << "\n[Edit Account]\n";
+    cout << "Enter 0 at any time to cancel editing\n";
+
+    vector<Account> accounts;
+    loadAccounts(accounts);
+
+    bool found = false;
+    for (auto& account : accounts) {
+        if (account.customer.customerIC == acc.customer.customerIC) {
+            found = true;
+            cout << "Current Account Details:\n";
+            cout << "IC: " << account.customer.customerIC << " (cannot be changed)\n";
+            cout << "Name: " << account.customer.customerName << endl;
+            cout << "Phone: " << account.customer.customerHpNo << endl;
+
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            string newName, newHp, newPass;
+
+            cout << "\nEnter new name (press Enter to keep current, 0 to cancel): ";
+            getline(cin, newName);
+            if (newName == "0") {
+                cout << "Edit cancelled.\n";
+                return;
+            }
+            if (newName.empty()) newName = account.customer.customerName;
+
+            cout << "Enter new phone number (press Enter to keep current, 0 to cancel): ";
+            getline(cin, newHp);
+            if (newHp == "0") {
+                cout << "Edit cancelled.\n";
+                return;
+            }
+            if (newHp.empty()) {
+                newHp = account.customer.customerHpNo;
+            }
+            else {
+                string tempHp = newHp;
+                tempHp.erase(remove_if(tempHp.begin(), tempHp.end(), ::isspace), tempHp.end());
+                tempHp.erase(remove(tempHp.begin(), tempHp.end(), '-'), tempHp.end());
+
+                if (tempHp.length() < 10 || tempHp.length() > 11) {
+                    cout << "Invalid phone number format. Keeping current phone number.\n";
+                    newHp = account.customer.customerHpNo;
+                }
+                else {
+                    newHp = tempHp;
+                }
+            }
+
+            cout << "Enter new password (press Enter to keep current, 0 to cancel): ";
+            getline(cin, newPass);
+            if (newPass == "0") {
+                cout << "Edit cancelled.\n";
+                return;
+            }
+            if (newPass.empty()) newPass = account.password;
+
+            account.customer.customerName = newName;
+            account.customer.customerHpNo = newHp;
+            account.password = newPass;
+
+            acc.customer.customerName = newName;
+            acc.customer.customerHpNo = newHp;
+            acc.password = newPass;
+
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Error: Account not found in database.\n";
+        return;
+    }
+    saveAccounts(accounts);
+
+    cout << "Account updated successfully!\n";
+}
+
+bool deleteAccount(Account& acc, vector<Event>& events) {
+    system("cls");
+    cout << "\n[Delete Account]\n";
+    cout << "WARNING: This action cannot be undone!\n";
+    cout << "All your events and data will be permanently deleted.\n\n";
+
+    string passwordConfirm;
+    cout << "Enter your password to confirm deletion: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, passwordConfirm);
+
+    if (passwordConfirm != acc.password) {
+        cout << "Password incorrect. Account deletion cancelled.\n";
+        return false;
+    }
+
+    vector<Account> accounts;
+    loadAccounts(accounts);
+
+    vector<Account> newAccounts;
+    for (const auto& account : accounts) {
+        if (account.customer.customerIC != acc.customer.customerIC) {
+            newAccounts.push_back(account);
+        }
+    }
+
+    saveAccounts(newAccounts);
+
+    vector<Event> newEvents;
+    for (const auto& event : events) {
+        if (event.customer.customerIC != acc.customer.customerIC) {
+            newEvents.push_back(event);
+        }
+    }
+
+    events = newEvents;
+    saveEvents(events);
+
+    cout << "Account and all associated data have been deleted successfully.\n";
+    return true;
 }
 
 int main() {

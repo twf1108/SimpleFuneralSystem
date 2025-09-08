@@ -131,7 +131,7 @@ bool isValidCardNumber(const string& cardNumber);
 bool isValidExpiryDate(int month, int year);
 bool isValidCVV(const string& cvv, const string& cardType);
 string detectCardType(const string& cardNumber);
-void getCardDetails(string& cardNumber, string& expiryMonth, string& expiryYear, string& cvv, string& cardHolderName);
+bool getCardDetails(string& cardNumber, string& expiryMonth, string& expiryYear, string& cvv, string& cardHolderName);
 void printReceipt(const Event& event, const string& paymentMethod, const string& transactionId, const string& invoiceNumber);
 
 // ===== Validation =====
@@ -1433,62 +1433,172 @@ string selectPaymentMethod() {
     }
 }
 
-void getCardDetails(string& cardNumber, string& expiryMonth, string& expiryYear, string& cvv, string& cardHolderName) {
+bool getCardDetails(string& cardNumber, string& expiryMonth, string& expiryYear, string& cvv, string& cardHolderName) {
+    cout << "\n--- Card Details Entry ---\n";
+    cout << "Note: Enter 'q' or 'quit' at any prompt to cancel payment\n\n";
+
     bool valid = false;
     while (!valid) {
-        cout << "Enter Card Number: ";
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        getline(cin, cardNumber);
+        // --- Card Number Entry ---
+        cardNumber.clear();
+        cout << "Enter Card Number (or 'q' to quit): ";
+        while (cardNumber.empty()) {
 
-        cardNumber.erase(remove_if(cardNumber.begin(), cardNumber.end(), ::isspace), cardNumber.end());
-        cardNumber.erase(remove(cardNumber.begin(), cardNumber.end(), '-'), cardNumber.end());
+            getline(cin, cardNumber);
 
-        if (!isValidCardNumber(cardNumber)) {
-            cout << "Invalid card number. Please try again.\n";
-            continue;
+            // Check for quit command
+            if (cardNumber == "q" || cardNumber == "Q" || cardNumber == "quit" || cardNumber == "QUIT") {
+                return false;
+            }
+
+            // If empty, just continue the loop (no message)
+            if (cardNumber.empty()) {
+                continue;
+            }
+
+            // Clean card number
+            cardNumber.erase(remove_if(cardNumber.begin(), cardNumber.end(), ::isspace), cardNumber.end());
+            cardNumber.erase(remove(cardNumber.begin(), cardNumber.end(), '-'), cardNumber.end());
+
+            if (!isValidCardNumber(cardNumber)) {
+                cout << "Invalid card number. Please try again.\n";
+                cout << "Enter Card Number (or 'q' to quit): ";
+                cardNumber.clear(); // Clear to force re-prompt
+            }
         }
 
         string cardType = detectCardType(cardNumber);
         cout << "Detected Card Type: " << cardType << "\n";
 
-        cout << "Enter Expiry Date (MM YY): ";
-        cin >> expiryMonth >> expiryYear;
+        // --- Expiry Date Entry ---
+        string input;
+        while (true) {
+            cout << "Enter Expiry Date (MM YY, or 'q' to quit): ";
+            getline(cin, input);
 
-        try {
-            int month = stoi(expiryMonth);
-            int year = stoi(expiryYear);
-            if (year < 100) year += 2000;
-            if (!isValidExpiryDate(month, year)) {
-                cout << "Invalid expiry date. Please try again.\n";
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            // Check for quit command
+            if (input == "q" || input == "Q" || input == "quit" || input == "QUIT") {
+                return false;
+            }
+
+            // If empty, just continue the loop (no message)
+            if (input.empty()) {
+                continue;
+            }
+
+            // Parse expiry date
+            istringstream iss(input);
+            if (!(iss >> expiryMonth >> expiryYear)) {
+                cout << "Invalid input format. Please enter MM YY (e.g., 12 25).\n";
+                continue;
+            }
+
+            try {
+                int month = stoi(expiryMonth);
+                int year = stoi(expiryYear);
+                if (year < 100) year += 2000;
+                if (!isValidExpiryDate(month, year)) {
+                    cout << "Invalid expiry date. Please try again.\n";
+                    continue;
+                }
+                break;
+            }
+            catch (const invalid_argument&) {
+                cout << "Invalid input! Please enter numbers for month and year.\n";
                 continue;
             }
         }
-        catch (const invalid_argument&) {
-            cout << "Invalid input! Please enter numbers for month and year.\n";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            continue;
+
+        // --- CVV Entry ---
+        cvv.clear();
+        while (cvv.empty()) {
+            cout << "Enter CVV (or 'q' to quit): ";
+            getline(cin, cvv);
+
+            // Check for quit command
+            if (cvv == "q" || cvv == "Q" || cvv == "quit" || cvv == "QUIT") {
+                return false;
+            }
+
+            // If empty, just continue the loop (no message)
+            if (cvv.empty()) {
+                continue;
+            }
+
+            if (!isValidCVV(cvv, cardType)) {
+                cout << "Invalid CVV. Please try again.\n";
+                cvv.clear(); // Clear to force re-prompt
+            }
         }
 
-        cout << "Enter CVV: ";
-        cin >> cvv;
-        if (!isValidCVV(cvv, cardType)) {
-            cout << "Invalid CVV. Please try again.\n";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            continue;
+        // --- Cardholder Name Entry ---
+        cardHolderName.clear();
+        while (cardHolderName.empty()) {
+            cout << "Enter Cardholder Name (or 'q' to quit): ";
+            getline(cin, cardHolderName);
+
+            // Check for quit command
+            if (cardHolderName == "q" || cardHolderName == "Q" || cardHolderName == "quit" || cardHolderName == "QUIT") {
+                return false;
+            }
+
+            // If empty, just continue the loop (no message)
+            if (cardHolderName.empty()) {
+                continue;
+            }
         }
 
-        cout << "Enter Cardholder Name: ";
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        getline(cin, cardHolderName);
+        // --- Final Confirmation ---
+        cout << "\n--- Confirm Card Details ---\n";
+        string maskedCard = "****-****-****-XXXX";
+        if (cardNumber.length() >= 4) {
+            maskedCard = "****-****-****-" + cardNumber.substr(cardNumber.length() - 4);
+        }
 
-        valid = true;
+        string yearSuffix = expiryYear;
+        if (expiryYear.length() >= 2) {
+            yearSuffix = expiryYear.substr(expiryYear.length() - 2);
+        }
+
+        cout << "Card: " << maskedCard << "\n";
+        cout << "Expiry: " << expiryMonth << "/" << yearSuffix << "\n";
+        cout << "Cardholder: " << cardHolderName << "\n";
+
+        char confirm;
+        bool validConfirm = false;
+        while (!validConfirm) {
+            cout << "Are these details correct? (y/n/q): ";
+            string input;
+            getline(cin, input);
+
+            if (input.empty()) {
+                continue; // Just re-prompt without message
+            }
+
+            confirm = tolower(input[0]);
+
+            if (confirm == 'q') {
+                return false;
+            }
+
+            if (confirm == 'y' || confirm == 'n') {
+                validConfirm = true;
+            }
+            else {
+                cout << "Invalid input. Please enter y, n, or q.\n";
+            }
+        }
+
+        if (confirm == 'y') {
+            valid = true;
+        }
+        else {
+            cout << "Please re-enter your card details.\n\n";
+        }
     }
-}
 
+    return true;
+}
 void printReceipt(const Event& event, const string& paymentMethod, const string& transactionId, const string& invoiceNumber) {
     system("cls");
     cout << "\n=====================================\n";
@@ -1582,8 +1692,12 @@ void eventPayment(Account& acc, vector<Event>& events) {
     string invoiceNumber = generateInvoiceNumber();
 
     if (paymentMethod == "CC" || paymentMethod == "DC") {
-        getCardDetails(cardNumber, expiryMonth, expiryYear, cvv, cardHolderName);
-        cout << "\nProcessing " << (paymentMethod == "CC" ? "Credit Card" : "Debit Card") << " payment...\n";
+    cout << "\n--- " << (paymentMethod == "CC" ? "Credit Card" : "Debit Card") << " Payment ---\n";
+    
+    if (!getCardDetails(cardNumber, expiryMonth, expiryYear, cvv, cardHolderName)) {
+        cout << "Payment cancelled.\n";
+        return;
+    }
 
         string maskedCard = "****-****-****-XXXX"; // Default value
         if (cardNumber.length() >= 4) {
@@ -2471,3 +2585,4 @@ int main() {
     accountManagement();
     return 0;
 }
+

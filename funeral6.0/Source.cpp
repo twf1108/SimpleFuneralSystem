@@ -1229,8 +1229,8 @@ void eventMonitoring(Account& acc, vector<Event>& events) {
         cout << "[Event Monitoring]\n\n";
         cout << "Select a paid event to monitor:\n";
         for (size_t i = 0; i < paidEvents.size(); i++) {
-            cout << i + 1 << ". " << paidEvents[i].deceased.deceasedName
-                << " (Customer: " << paidEvents[i].customer.customerName
+            cout << i + 1 << ". " << "Deceased: " << paidEvents[i].deceased.deceasedName
+                << " (User: " << paidEvents[i].customer.customerName
                 << ") - Package: " << paidEvents[i].package.name
                 << " - Date: " << paidEvents[i].date.year << "-"
                 << setw(2) << setfill('0') << paidEvents[i].date.month << "-"

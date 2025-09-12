@@ -115,7 +115,6 @@ string inputIC();
 string inputHp();
 void inputDeathDate(Event& e);
 void loopMenu(const vector<string>& menu, int* selection = nullptr, string title = "", bool runInput = false);
-vector<Event> getUnpaidEventsByIC(string IC, const vector<Event>& events);
 void loadEvents(vector<Event>& events, vector<string>* lines = nullptr, const string& filename = "assignment.txt");
 void saveEvents(const vector<Event>& events);
 void saveEvents(const vector<string>& lines, const string& filename);
@@ -409,16 +408,6 @@ void printPrices(Event &e) {
 }
 
 // ==== Loop ====
-vector<Event> getUnpaidEventsByIC(string IC, const vector<Event>& events) {
-    vector<Event> temp;
-    for (const auto& event : events) {
-        if (event.customer.customerIC == IC && !event.paid) {
-            temp.push_back(event);
-        }
-    }
-    return temp;
-}
-
 void vectorLoop(const vector<Event>& events, int typeOutput = 0, string title = "", vector<Event>* records = nullptr) {
     int count = 0;
     if (records) (*records).clear();

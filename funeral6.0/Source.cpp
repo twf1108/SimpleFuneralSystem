@@ -234,8 +234,8 @@ void inputFuneralDate(Event& e) {
             continue;
         }
 
-        if (y < currentYear) {
-            cout << "Invalid year! Funeral must be in " << currentYear << " or later.\n";
+        if (y < 1900 || y > 2100) {
+            cout << "Invalid year! Please enter a year between 1900 and 2100.\n";
             continue;
         }
 
